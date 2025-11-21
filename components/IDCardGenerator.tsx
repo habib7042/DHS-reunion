@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { StudentData, TicketData, NostalgiaContent } from '../types';
 import { generateNostalgiaData } from '../services/geminiService';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader, Upload } from 'lucide-react';
+import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -10,17 +11,16 @@ interface IDCardGeneratorProps {
   student: StudentData;
   ticket: TicketData;
   logo: string;
-  onLogoChange: (logo: string) => void;
+  // onLogoChange prop removed as logo is now fixed
 }
 
-export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, logo, onLogoChange }) => {
+export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, logo }) => {
   const [nostalgia, setNostalgia] = useState<NostalgiaContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const logoInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3, 
+        scale: 4, // High quality
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
@@ -79,8 +79,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       const imgProps = pdf.getImageProperties(imgData);
-      // Adjusted for the new smaller card size to look good on A4
-      const imgWidth = 80; // approx 300px converted to physical width relative to A4
+      const imgWidth = 80; // Physical width in mm (approx 3 inches)
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       
       const x = (pdfWidth - imgWidth) / 2;
@@ -88,7 +87,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
       // Add title
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(18);
+      pdf.setFontSize(16);
       pdf.setTextColor(30, 58, 138); // School Primary Color
       pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, y - 15, { align: "center" });
       
@@ -97,10 +96,10 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       
       // Add footer instructions
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(10);
+      pdf.setFontSize(9);
       pdf.setTextColor(100);
-      pdf.text("Please bring this pass to the entry gate.", pdfWidth / 2, y + imgHeight + 10, { align: "center" });
-      pdf.text(`Generated for: ${student.fullName}`, pdfWidth / 2, y + imgHeight + 16, { align: "center" });
+      pdf.text("Please bring this pass to the entry gate.", pdfWidth / 2, y + imgHeight + 8, { align: "center" });
+      pdf.text(`Generated for: ${student.fullName}`, pdfWidth / 2, y + imgHeight + 13, { align: "center" });
 
       pdf.save(`DHS_Reunion_Card_${student.sscYear}_${student.fullName.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
@@ -124,25 +123,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     }
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          onLogoChange(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const triggerFileInput = () => {
     fileInputRef.current?.click();
-  };
-
-  const triggerLogoInput = () => {
-    logoInputRef.current?.click();
   };
 
   return (
@@ -221,7 +203,6 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             {downloading ? 'Generating PDF...' : 'Save as PDF'}
           </button>
         </div>
-        <p className="text-xs text-slate-400 mt-3">Tip: Click the School Logo on the card to upload your own.</p>
       </div>
 
       {/* The Card Container - Resized to 300x500 */}
@@ -230,61 +211,48 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[300px] h-[500px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-[300px] h-[500px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
           >
             
             {/* Decorative holographic overlay */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-50 pointer-events-none z-10 print:hidden no-print"></div>
 
-            {/* Header - Reduced height to 128px (h-32) */}
-            <div className="bg-school-primary h-32 relative overflow-hidden flex-shrink-0">
+            {/* Header - Compact Layout (Horizontal) */}
+            <div className="bg-school-primary h-24 relative overflow-hidden flex-shrink-0 flex items-center justify-center">
               <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '10px 10px'}}></div>
-              <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-school-accent rounded-full opacity-30 blur-2xl"></div>
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400 rounded-full opacity-20 blur-2xl"></div>
+              <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-school-accent rounded-full opacity-30 blur-xl"></div>
+              <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-400 rounded-full opacity-20 blur-xl"></div>
 
-              <div className="flex flex-col items-center justify-center h-full relative z-10 pt-1 pb-2">
-                {/* Logo - Reduced to 64px (w-16) */}
+              <div className="flex flex-row items-center gap-3 relative z-10 px-4 w-full justify-center">
+                {/* Logo - Smaller Size */}
                 <div 
-                  className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-1.5 shadow-xl border-4 border-school-accent p-1 relative group/logo cursor-pointer"
-                  onClick={triggerLogoInput}
-                  title="Click to change school logo"
+                  className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-school-accent p-0.5 flex-shrink-0"
                 >
-                  <input 
-                    type="file" 
-                    ref={logoInputRef}
-                    onChange={handleLogoUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  
                   <img src={logo} alt="School Logo" className="w-full h-full object-contain rounded-full" />
-
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 no-print rounded-full">
-                    <Upload className="w-5 h-5 text-white" />
-                  </div>
                 </div>
                 
-                {/* Text below logo - Scaled down */}
-                <h1 className="text-white font-serif font-bold text-base tracking-wider uppercase text-shadow-sm">Dighali High School</h1>
-                <div className="flex items-center space-x-2 mt-0.5">
-                   <span className="h-[1px] w-4 bg-school-accent/50"></span>
-                   <p className="text-school-accent text-[9px] font-bold tracking-[0.2em] uppercase">Reunion 2026</p>
-                   <span className="h-[1px] w-4 bg-school-accent/50"></span>
+                {/* Text - Left aligned next to logo */}
+                <div className="text-left">
+                    <h1 className="text-white font-serif font-bold text-sm leading-tight uppercase tracking-wide text-shadow-sm">Dighali<br/>High School</h1>
+                    <div className="flex items-center mt-0.5">
+                       <span className="h-[1px] w-2 bg-school-accent/50 mr-1"></span>
+                       <p className="text-school-accent text-[9px] font-bold tracking-widest uppercase">Reunion 2026</p>
+                    </div>
                 </div>
               </div>
             </div>
 
             {/* Content - Padding Reduced */}
-            <div className="p-4 flex-grow flex flex-col relative bg-white">
+            <div className="p-3 flex-grow flex flex-col relative bg-white">
               {/* Badge */}
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[9px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
+              <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[8px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
                 97 Years Celebration
               </div>
 
-              {/* Photo Area - Reduced to 96px (w-24) */}
-              <div className="text-center mt-3 mb-3 relative z-30">
+              {/* Photo Area - Reduced Size */}
+              <div className="text-center mt-2 mb-2 relative z-30">
                 <div 
-                  className="w-24 h-24 mx-auto rounded-full border-4 border-white shadow-lg mb-2 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
+                  className="w-20 h-20 mx-auto rounded-full border-[3px] border-white shadow-md mb-1.5 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
                   onClick={triggerFileInput}
                 >
                   <input 
@@ -298,57 +266,57 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                   {photo ? (
                     <img src={photo} alt={student.fullName} className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-10 h-10 text-slate-300" />
+                    <User className="w-8 h-8 text-slate-300" />
                   )}
                   
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity duration-200 no-print">
-                    <ImagePlus className="w-5 h-5 text-white mb-0.5" />
+                    <ImagePlus className="w-4 h-4 text-white mb-0.5" />
                     <span className="text-[6px] text-white font-bold uppercase tracking-wider">Upload</span>
                   </div>
 
                   {student.isVolunteer && (
-                    <div className="absolute bottom-0 w-full bg-school-accent text-[7px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
+                    <div className="absolute bottom-0 w-full bg-school-accent text-[6px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
                       Volunteer
                     </div>
                   )}
                 </div>
 
-                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1">{student.fullName}</h2>
-                <p className="text-school-primary font-medium text-xs mt-0.5 line-clamp-1">{student.occupation}</p>
+                <h2 className="text-base font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1 px-1">{student.fullName}</h2>
+                <p className="text-school-primary font-medium text-[10px] mt-0.5 line-clamp-1 px-1">{student.occupation}</p>
               </div>
 
               {/* Details Grid - Compact spacing */}
-              <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-sm bg-slate-50 rounded-lg p-3 border border-slate-100 mb-3">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs bg-slate-50 rounded-lg p-2.5 border border-slate-100 mb-2">
                 <div>
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
-                  <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
+                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
+                  <p className="font-bold text-slate-800 text-xs">{student.sscYear}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
-                  <p className="font-bold text-school-secondary uppercase text-xs">{ticket.type}</p>
+                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
+                  <p className="font-bold text-school-secondary uppercase text-[10px]">{ticket.type}</p>
                 </div>
                 <div>
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
-                  <p className="font-mono text-slate-600 text-[10px]">{ticket.ticketId}</p>
+                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
+                  <p className="font-mono text-slate-600 text-[9px] leading-tight">{ticket.ticketId}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
-                  <p className="font-bold text-slate-800 text-sm">{ticket.guests}</p>
+                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
+                  <p className="font-bold text-slate-800 text-xs">{ticket.guests}</p>
                 </div>
               </div>
 
-              {/* QR Code - Reduced Size */}
+              {/* QR Code - Compact Size */}
               <div className="mt-auto flex flex-col items-center justify-center pb-1">
-                <div className="bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={60} level="H" />
+                <div className="bg-white p-1 rounded-md border border-slate-200 shadow-sm">
+                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={50} level="H" />
                 </div>
-                <p className="text-center text-[8px] text-slate-400 mt-1 font-mono">Scan at Entry Gate</p>
+                <p className="text-center text-[7px] text-slate-400 mt-1 font-mono">Scan for Entry</p>
               </div>
             </div>
             
             {/* Footer Strip */}
-            <div className="bg-slate-800 h-6 w-full flex items-center justify-center flex-shrink-0">
-              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
+            <div className="bg-slate-800 h-5 w-full flex items-center justify-center flex-shrink-0">
+              <p className="text-[7px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
             </div>
           </div>
         </div>
