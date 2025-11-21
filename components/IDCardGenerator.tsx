@@ -283,7 +283,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             <div className="p-6 flex-grow flex flex-col relative bg-white">
               {/* Badge */}
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20">
-                96 Years Celebration
+                97 Years Celebration
               </div>
 
               {/* Photo Area with Upload */}

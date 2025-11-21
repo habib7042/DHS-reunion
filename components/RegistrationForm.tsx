@@ -52,8 +52,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
     onSubmit(formData);
   };
 
-  // Update to calculate 96 years back from 2026
-  const years = Array.from({ length: 96 }, (_, i) => 2026 - i); 
+  // Update to calculate 97 years back from 2026 (1929 to 2026)
+  const years = Array.from({ length: 97 }, (_, i) => 2026 - i); 
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden my-4 border border-slate-100 transform transition-all">
