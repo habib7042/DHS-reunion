@@ -6,7 +6,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { MemoryWall } from './MemoryWall';
 
 interface IDCardGeneratorProps {
   student: StudentData;
@@ -76,31 +75,29 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgWidth = 80; // Physical width in mm
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      // Fixed card dimensions in mm for PDF
+      const imgWidth = 90; // Standard badge width
+      const imgHeight = 145; // Standard badge height
       
       const x = (pdfWidth - imgWidth) / 2;
-      const y = (pdfHeight - imgHeight) / 2;
+      const y = 20;
 
       // Add title
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
       pdf.setTextColor(30, 58, 138); // School Primary Color
-      pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, y - 15, { align: "center" });
+      pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, 15, { align: "center" });
       
       // Add card image
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
       
       // Add footer instructions
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(9);
+      pdf.setFontSize(10);
       pdf.setTextColor(100);
-      pdf.text("Please bring this pass to the entry gate.", pdfWidth / 2, y + imgHeight + 8, { align: "center" });
-      pdf.text(`Generated for: ${student.fullName}`, pdfWidth / 2, y + imgHeight + 13, { align: "center" });
-
+      pdf.text("Please print this card and bring it to the venue.", pdfWidth / 2, y + imgHeight + 10, { align: "center" });
+      
       pdf.save(`DHS_Reunion_Card_${student.sscYear}_${student.fullName.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
       console.error("PDF generation failed:", error);
@@ -174,12 +171,12 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
           <Sparkles className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-3xl font-serif font-bold text-school-primary mb-2">You're Registered!</h2>
-        <p className="text-slate-600 max-w-md mx-auto mb-4">Please upload your photo below to complete your ID card.</p>
+        <p className="text-slate-600 max-w-md mx-auto mb-4">Upload your photo to complete your entry badge.</p>
         
         {!photo && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-sm mx-auto mb-6 flex items-center animate-pulse cursor-pointer hover:bg-amber-100 transition-colors shadow-sm" onClick={triggerFileInput}>
              <Camera className="w-5 h-5 text-amber-600 mr-2" />
-             <span className="text-sm text-amber-800 font-bold">Action Required: Click on the card avatar to upload photo</span>
+             <span className="text-sm text-amber-800 font-bold">Click avatar to upload photo</span>
           </div>
         )}
         
@@ -188,7 +185,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             onClick={handlePrint}
             className="flex items-center px-6 py-3 bg-school-primary text-white rounded-lg hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20 font-medium transform hover:-translate-y-0.5"
           >
-            <Printer className="w-4 h-4 mr-2" /> Print Card
+            <Printer className="w-4 h-4 mr-2" /> Print Badge
           </button>
           <button 
              onClick={handleDownloadPDF}
@@ -200,130 +197,111 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             ) : (
               <Download className="w-4 h-4 mr-2" />
             )}
-            {downloading ? 'Generating PDF...' : 'Save as PDF'}
+            {downloading ? 'Generating...' : 'Save as PDF'}
           </button>
         </div>
       </div>
 
-      {/* The Card Container - Fluid Ratio (Portrait) */}
+      {/* The Card Container - Vertical Event Badge (Approx 300x540) */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
-        <div className="relative group">
+        <div className="relative group drop-shadow-2xl">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-full max-w-sm min-h-[500px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col aspect-[3/5]"
+            className="w-[320px] h-[540px] bg-white rounded-xl overflow-hidden border-0 relative flex flex-col"
           >
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(#1e3a8a 1px, transparent 1px)', backgroundSize: '12px 12px'}}></div>
             
-            {/* Decorative holographic overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-50 pointer-events-none z-10 print:hidden no-print"></div>
+            {/* Top Decorative Stripe */}
+            <div className="h-2 w-full bg-gradient-to-r from-school-primary via-school-accent to-school-primary"></div>
 
-            {/* Header - Compact Layout (Horizontal) */}
-            <div className="bg-school-primary h-24 relative overflow-hidden flex-shrink-0 flex items-center justify-center">
-              <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '10px 10px'}}></div>
-              <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-school-accent rounded-full opacity-30 blur-xl"></div>
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-400 rounded-full opacity-20 blur-xl"></div>
-
-              <div className="flex flex-row items-center gap-3 relative z-10 px-4 w-full justify-center">
-                {/* Logo - Smaller Size */}
-                <div 
-                  className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-school-accent p-0.5 flex-shrink-0"
-                >
-                  <img src={logo} alt="School Logo" className="w-full h-full object-contain rounded-full" />
+            {/* Header */}
+            <div className="pt-6 pb-2 text-center relative z-10">
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 mb-2 bg-white rounded-full p-0.5 border border-slate-100 shadow-sm">
+                   <img src={logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
-                
-                {/* Text - Left aligned next to logo */}
-                <div className="text-left">
-                    <h1 className="text-white font-serif font-bold text-sm leading-tight uppercase tracking-wide text-shadow-sm">Dighali<br/>High School</h1>
-                    <div className="flex items-center mt-0.5">
-                       <span className="h-[1px] w-2 bg-school-accent/50 mr-1"></span>
-                       <p className="text-school-accent text-[9px] font-bold tracking-widest uppercase">Reunion 2026</p>
-                    </div>
+                <h1 className="text-school-primary font-serif font-bold text-lg leading-tight">DIGHALI HIGH SCHOOL</h1>
+                <div className="flex items-center gap-2 mt-1">
+                   <div className="h-[1px] w-6 bg-school-accent"></div>
+                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Est. 1929</span>
+                   <div className="h-[1px] w-6 bg-school-accent"></div>
                 </div>
               </div>
             </div>
 
-            {/* Content - Height automatically fills the container */}
-            <div className="p-3 flex-grow flex flex-col relative bg-white">
-              {/* Badge */}
-              <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[8px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
-                97 Years Celebration
+            {/* Main Badge Content */}
+            <div className="flex-grow flex flex-col items-center px-6 pt-2 relative z-10">
+              
+              {/* Event Title Badge */}
+              <div className="mb-5 bg-gradient-to-r from-school-primary to-blue-800 text-white px-4 py-1.5 rounded-full shadow-md">
+                 <span className="text-[10px] font-bold uppercase tracking-widest">Reunion 2026</span>
               </div>
 
-              {/* Photo Area */}
-              <div className="text-center mt-4 mb-2 relative z-30">
-                <div 
-                  className="w-24 h-24 mx-auto rounded-full border-[3px] border-white shadow-md mb-1.5 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
-                  onClick={triggerFileInput}
-                >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handlePhotoUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  
-                  {photo ? (
-                    <img src={photo} alt={student.fullName} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-10 h-10 text-slate-300" />
-                  )}
-                  
-                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity duration-200 no-print">
-                    <ImagePlus className="w-5 h-5 text-white mb-0.5" />
-                    <span className="text-[7px] text-white font-bold uppercase tracking-wider">Upload</span>
-                  </div>
-
-                  {student.isVolunteer && (
-                    <div className="absolute bottom-0 w-full bg-school-accent text-[7px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
-                      Volunteer
+              {/* Photo with Ring */}
+              <div 
+                 className="w-32 h-32 rounded-full p-1 bg-white border-2 border-school-accent/50 shadow-lg mb-4 cursor-pointer group/photo relative"
+                 onClick={triggerFileInput}
+              >
+                 <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
+                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-100 relative">
+                    {photo ? (
+                      <img src={photo} alt="Student" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                         <User className="w-12 h-12 text-slate-300" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity no-print">
+                       <ImagePlus className="w-6 h-6 text-white" />
                     </div>
-                  )}
-                </div>
-
-                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight px-1 mt-2">{student.fullName}</h2>
-                <p className="text-school-primary font-medium text-xs mt-0.5 px-1">{student.occupation}</p>
+                 </div>
+                 {/* Volunteer Tag */}
+                 {student.isVolunteer && (
+                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-school-accent text-school-primary text-[9px] font-bold px-3 py-0.5 rounded border border-white uppercase">
+                     Volunteer
+                   </div>
+                 )}
               </div>
 
-              {/* Details Grid - Compact spacing */}
-              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-4 mt-3 flex-grow">
+              {/* Name & Title */}
+              <div className="text-center w-full mb-6">
+                <h2 className="text-xl font-bold text-slate-900 uppercase leading-tight break-words font-serif">{student.fullName}</h2>
+                <p className="text-school-secondary text-xs font-bold mt-1 uppercase tracking-wide">{student.occupation}</p>
+              </div>
+
+              {/* Info Grid */}
+              <div className="w-full grid grid-cols-2 gap-3 text-center border-t border-b border-slate-100 py-3 mb-auto">
                 <div>
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
-                  <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
+                   <span className="block text-[9px] text-slate-400 font-bold uppercase">Batch</span>
+                   <span className="block text-lg font-bold text-school-primary">{student.sscYear}</span>
                 </div>
-                <div className="text-right">
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
-                  <p className="font-bold text-school-secondary uppercase text-xs">{ticket.type}</p>
-                </div>
-                <div>
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
-                  <p className="font-mono text-slate-600 text-[10px] leading-tight break-all">{ticket.ticketId}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
-                  <p className="font-bold text-slate-800 text-sm">{ticket.guests}</p>
+                <div className="border-l border-slate-100">
+                   <span className="block text-[9px] text-slate-400 font-bold uppercase">Guests</span>
+                   <span className="block text-lg font-bold text-school-primary">{ticket.guests}</span>
                 </div>
               </div>
 
-              {/* QR Code - Pushed to bottom */}
-              <div className="mt-auto flex flex-col items-center justify-center pb-4">
-                <div className="bg-white p-2 rounded-md border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="H" />
-                </div>
-                <p className="text-center text-[10px] text-slate-400 mt-2 font-mono tracking-wide">Scan for Entry</p>
+              {/* QR Code Section */}
+              <div className="pt-3 pb-2 flex flex-col items-center">
+                 <div className="bg-white p-1.5 border border-slate-200 rounded shadow-sm">
+                    <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="M" />
+                 </div>
+                 <p className="text-[9px] font-mono text-slate-400 mt-1.5">{ticket.ticketId}</p>
               </div>
             </div>
-            
-            {/* Footer Strip */}
-            <div className="bg-slate-800 h-6 w-full flex items-center justify-center flex-shrink-0">
-              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
+
+            {/* Footer */}
+            <div className="bg-slate-900 text-center py-3 mt-2">
+              <p className="text-[9px] text-school-accent font-bold uppercase tracking-widest">Authorized Entry • 97 Years</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* AI Nostalgia Section */}
-      <div className="mt-12 w-full max-w-[600px] no-print animate-fade-in-up">
+      <div className="mt-10 w-full max-w-[600px] no-print animate-fade-in-up">
         <div className="bg-white rounded-2xl shadow-xl border border-indigo-100 overflow-hidden">
           <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center justify-between">
              <div className="flex items-center gap-2">
@@ -380,11 +358,6 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             )}
           </div>
         </div>
-      </div>
-
-      {/* Memory Wall Integration */}
-      <div className="w-full mt-8 no-print border-t border-slate-200 pt-8">
-         <MemoryWall preVerifiedStudent={student} />
       </div>
     </div>
   );

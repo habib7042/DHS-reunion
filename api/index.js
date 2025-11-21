@@ -47,8 +47,8 @@ const connectToDatabase = async () => {
 
 // Ensure DB is connected for every request
 app.use(async (req, res, next) => {
-  // Skip DB connection for AI routes (except memory refinement which needs AI) to speed them up
-  if (req.path.startsWith('/api/chat') || req.path.startsWith('/api/nostalgia')) {
+  // Skip DB connection for AI routes to speed them up
+  if (req.path.startsWith('/api/chat') || req.path.startsWith('/api/nostalgia') || req.path.startsWith('/api/memories/refine')) {
     return next();
   }
 
@@ -133,21 +133,19 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// 3. Memory Refinement Endpoint
-app.post('/api/refine-text', async (req, res) => {
+// 3. Refine Memory Text (AI)
+app.post('/api/memories/refine', async (req, res) => {
   if (!ai) return res.status(503).json({ error: "AI Service Unavailable" });
   
   const { text } = req.body;
-
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Rewrite the following school memory to be grammatically correct, warm, nostalgic, and concise (under 40 words). Keep the original meaning but make it sound beautiful. Text: "${text}"`,
+      contents: `Fix grammar and polish this short memory text for a school reunion wall (keep it concise and emotional, max 50 words). Just return the refined text string. Text: "${text}"`,
     });
-    
     res.json({ text: response.text });
   } catch (error) {
-    console.error("Refine Text Error:", error);
+    console.error("AI Refine Error:", error);
     res.status(500).json({ error: "Failed to refine text" });
   }
 });
@@ -185,6 +183,8 @@ const RegistrationSchema = new mongoose.Schema({
   submissionDate: { type: Date, default: Date.now }
 });
 
+const Registration = mongoose.models.Registration || mongoose.model('Registration', RegistrationSchema);
+
 const MemorySchema = new mongoose.Schema({
   studentName: String,
   sscYear: Number,
@@ -192,7 +192,6 @@ const MemorySchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
-const Registration = mongoose.models.Registration || mongoose.model('Registration', RegistrationSchema);
 const Memory = mongoose.models.Memory || mongoose.model('Memory', MemorySchema);
 
 
@@ -257,37 +256,9 @@ app.post('/api/registrations/search', async (req, res) => {
 
 // --- MEMORY ROUTES ---
 
-// Verify user by mobile and SSC year before letting them post
-app.post('/api/verify-user', async (req, res) => {
-  try {
-    const { mobile, sscYear } = req.body;
-    // Check for an APPROVED registration with matching mobile and year
-    const reg = await Registration.findOne({ 
-      'student.mobile': mobile, 
-      'student.sscYear': Number(sscYear),
-      'status': 'approved'
-    });
-    
-    if (!reg) {
-      return res.status(404).json({ 
-        verified: false, 
-        message: 'You are not approved user.' 
-      });
-    }
-    
-    res.json({ 
-      verified: true, 
-      studentName: reg.student.fullName,
-      sscYear: reg.student.sscYear
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.get('/api/memories', async (req, res) => {
   try {
-    const memories = await Memory.find().sort({ timestamp: -1 }).limit(20);
+    const memories = await Memory.find().sort({ timestamp: -1 });
     res.json(memories);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -296,13 +267,44 @@ app.get('/api/memories', async (req, res) => {
 
 app.post('/api/memories', async (req, res) => {
   try {
-    const newMem = new Memory(req.body);
-    const savedMem = await newMem.save();
-    res.status(201).json(savedMem);
+    const newMemory = new Memory(req.body);
+    await newMemory.save();
+    res.status(201).json(newMemory);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
+app.post('/api/memories/verify', async (req, res) => {
+  try {
+    const { mobile, sscYear } = req.body;
+    // Look for approved registration
+    const reg = await Registration.findOne({
+      'student.mobile': mobile,
+      'student.sscYear': Number(sscYear),
+      status: 'approved'
+    });
+
+    if (!reg) {
+      // Check if pending exists
+      const pending = await Registration.findOne({
+        'student.mobile': mobile,
+        'student.sscYear': Number(sscYear)
+      });
+      if (pending) {
+        return res.status(403).json({ error: "Your registration is still pending approval." });
+      }
+      return res.status(404).json({ error: "No approved registration found. Please register first." });
+    }
+
+    res.json({
+      verified: true,
+      studentName: reg.student.fullName,
+      sscYear: reg.student.sscYear
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = app;

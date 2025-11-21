@@ -108,47 +108,58 @@ export const registrationService = {
 };
 
 export const memoryService = {
-  verifyUser: async (mobile: string, sscYear: string) => {
-    const response = await fetch(`${API_URL}/verify-user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile, sscYear })
-    });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || 'Verification failed');
-    }
-    return await response.json();
-  },
-
-  refineText: async (text: string): Promise<string> => {
-    const response = await fetch(`${API_URL}/refine-text`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    });
-    if (!response.ok) throw new Error("Failed to refine");
-    const data = await response.json();
-    return data.text;
-  },
-
   getAll: async (): Promise<Memory[]> => {
     try {
       const response = await fetch(`${API_URL}/memories`);
-      if (!response.ok) return [];
+      if (!response.ok) throw new Error('Failed to fetch memories');
       return await response.json();
-    } catch (e) {
-      return [];
+    } catch (error) {
+      // Simple fallback for demo/offline
+      return JSON.parse(localStorage.getItem('dhs_memories') || '[]');
     }
   },
 
-  create: async (memory: Partial<Memory>) => {
-    const response = await fetch(`${API_URL}/memories`, {
+  create: async (memory: { studentName: string, sscYear: number, text: string }) => {
+    try {
+      const response = await fetch(`${API_URL}/memories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memory),
+      });
+      if (!response.ok) throw new Error('Failed to create memory');
+      return await response.json();
+    } catch (error) {
+      // Fallback
+      const current = JSON.parse(localStorage.getItem('dhs_memories') || '[]');
+      const newMem = { ...memory, id: Date.now().toString(), timestamp: new Date().toISOString() };
+      localStorage.setItem('dhs_memories', JSON.stringify([newMem, ...current]));
+      return newMem;
+    }
+  },
+
+  verifyUser: async (mobile: string, sscYear: string) => {
+    const response = await fetch(`${API_URL}/memories/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(memory)
+      body: JSON.stringify({ mobile, sscYear }),
     });
-    if (!response.ok) throw new Error("Failed to post memory");
-    return await response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Verification failed');
+    return data;
+  },
+
+  refineText: async (text: string): Promise<string> => {
+    try {
+      const response = await fetch(`${API_URL}/memories/refine`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) return text;
+      const data = await response.json();
+      return data.text || text;
+    } catch (e) {
+      return text;
+    }
   }
 };
