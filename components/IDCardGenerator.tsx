@@ -22,6 +22,11 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Safety check to prevent crashes if data is missing
+  if (!student || !ticket) {
+    return <div className="p-8 text-center">Error: Missing registration data. Please try checking your status again.</div>;
+  }
+
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -52,13 +57,17 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     try {
       setDownloading(true);
       
-      // Wait a moment for any rendering to settle
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // 1. Scroll to top to ensure element is in view/renderable (helps some browsers)
+      window.scrollTo(0, 0);
 
+      // 2. Small delay to ensure DOM is stable
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // 3. Capture with html2canvas
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Reduced from 4 to 2 for normal file size (~1-2MB instead of 18MB)
-        useCORS: true,
-        backgroundColor: '#ffffff',
+        scale: 2, // Good balance of quality vs file size
+        useCORS: true, // Needed for external images
+        backgroundColor: '#ffffff', // Force white background to avoid transparency issues
         logging: false,
         allowTaint: true,
         ignoreElements: (element) => {
@@ -67,8 +76,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         }
       });
 
-      // Use JPEG with 0.85 quality for significantly smaller file size than PNG
-      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      // 4. Generate PDF
+      const imgData = canvas.toDataURL('image/png'); // PNG is safer than JPEG for text clarity
       
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -77,14 +86,15 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Dynamic height calculation based on the captured canvas aspect ratio
+      // Calculate dimensions to fit on A4 while maintaining aspect ratio
       const canvasRatio = canvas.height / canvas.width;
-      const imgWidth = 100; // 100mm width (approx 400px scaled)
+      const imgWidth = 100; // 100mm width (approx 378px)
       const imgHeight = imgWidth * canvasRatio;
       
       const x = (pdfWidth - imgWidth) / 2;
-      const y = 20;
+      const y = 20; // Top margin
 
       // Add title
       pdf.setFont("helvetica", "bold");
@@ -92,8 +102,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       pdf.setTextColor(30, 58, 138); // School Primary Color
       pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, 15, { align: "center" });
       
-      // Add card image
-      pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+      // Add the card image
+      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
       
       // Add footer instructions
       pdf.setFont("helvetica", "normal");
@@ -101,10 +111,12 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       pdf.setTextColor(100);
       pdf.text("Please print this card and bring it to the venue.", pdfWidth / 2, y + imgHeight + 10, { align: "center" });
       
-      pdf.save(`DHS_Reunion_Card_${student.sscYear}_${student.fullName.replace(/\s+/g, '_')}.pdf`);
+      // Save
+      pdf.save(`DHS_Card_${student.sscYear}_${student.fullName.replace(/\s+/g, '_')}.pdf`);
+
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to generate PDF. Please try printing instead.");
+      alert("Could not generate PDF automatically. Please use the 'Print Badge' button and select 'Save as PDF' as the destination.");
     } finally {
       setDownloading(false);
     }

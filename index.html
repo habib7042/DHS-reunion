@@ -10,9 +10,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script>
-      // Simple polyfill for global process to prevent crashes in third-party libs
-      // Vite config also handles this for the bundle, but this protects runtime before bundle load
-      window.process = window.process || { env: { API_KEY: '', NODE_ENV: 'production' } };
+      // Simple polyfill for global process to prevent crashes in browser
+      window.process = { env: { NODE_ENV: 'production' } };
 
       tailwind.config = {
         theme: {
@@ -64,33 +63,33 @@
         }
       }
       /* Hide scrollbar for clean mobile look */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
+      ::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
       }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+      body {
+        -webkit-tap-highlight-color: transparent;
       }
     </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0",
     "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
+    "html5-qrcode": "https://aistudiocdn.com/html5-qrcode@^2.3.8",
     "vite": "https://aistudiocdn.com/vite@^7.2.4",
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "vite-plugin-pwa": "https://aistudiocdn.com/vite-plugin-pwa@^1.1.0",
-    "html5-qrcode": "https://aistudiocdn.com/html5-qrcode@^2.3.8",
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0"
+    "vite-plugin-pwa": "https://aistudiocdn.com/vite-plugin-pwa@^1.1.0"
   }
 }
 </script>
 </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
+  <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
