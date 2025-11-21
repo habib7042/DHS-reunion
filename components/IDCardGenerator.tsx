@@ -56,7 +56,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const canvas = await html2canvas(cardRef.current, {
-        scale: 4, // High quality
+        scale: 2, // Reduced from 4 to 2 for normal file size (~1-2MB instead of 18MB)
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
@@ -67,7 +67,9 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         }
       });
 
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      // Use JPEG with 0.85 quality for significantly smaller file size than PNG
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -91,7 +93,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, 15, { align: "center" });
       
       // Add card image
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
       
       // Add footer instructions
       pdf.setFont("helvetica", "normal");
