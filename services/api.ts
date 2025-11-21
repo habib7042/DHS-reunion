@@ -1,4 +1,5 @@
-import { Registration } from '../types';
+
+import { Registration, Memory } from '../types';
 
 // Use relative URL so it works on Vercel (same domain) and Localhost (via Vite proxy)
 const API_URL = '/api';
@@ -103,5 +104,48 @@ export const registrationService = {
         ) || null;
       });
     }
+  }
+};
+
+export const memoryService = {
+  verifyUser: async (mobile: string, ticketId: string) => {
+    const response = await fetch(`${API_URL}/verify-user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile, ticketId })
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  },
+
+  refineText: async (text: string): Promise<string> => {
+    const response = await fetch(`${API_URL}/refine-text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!response.ok) throw new Error("Failed to refine");
+    const data = await response.json();
+    return data.text;
+  },
+
+  getAll: async (): Promise<Memory[]> => {
+    try {
+      const response = await fetch(`${API_URL}/memories`);
+      if (!response.ok) return [];
+      return await response.json();
+    } catch (e) {
+      return [];
+    }
+  },
+
+  create: async (memory: Partial<Memory>) => {
+    const response = await fetch(`${API_URL}/memories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(memory)
+    });
+    if (!response.ok) throw new Error("Failed to post memory");
+    return await response.json();
   }
 };

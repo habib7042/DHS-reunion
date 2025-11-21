@@ -11,6 +11,7 @@ import { StatusCheck } from './components/StatusCheck';
 import { AboutUs } from './components/AboutUs';
 import { AiAssistant } from './components/AiAssistant';
 import { InstallPWA } from './components/InstallPWA';
+import { MemoryWall } from './components/MemoryWall'; // Import MemoryWall
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
 import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock, Timer } from 'lucide-react';
 import { registrationService } from './services/api';
@@ -255,7 +256,11 @@ const App: React.FC = () => {
                </div>
             </div>
             
-            <div className="h-20 bg-slate-50"></div>
+            {/* MEMORY WALL SECTION */}
+            <div className="bg-slate-50 pb-20">
+               <MemoryWall />
+            </div>
+
           </div>
         )}
 

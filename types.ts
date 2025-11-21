@@ -40,6 +40,14 @@ export interface Registration {
   submissionDate: string;
 }
 
+export interface Memory {
+  id: string;
+  studentName: string;
+  sscYear: number;
+  text: string;
+  timestamp: string;
+}
+
 export type AppView = 'home' | 'about' | 'register' | 'booking' | 'payment' | 'id-card' | 'schedule' | 'admin-login' | 'admin-dashboard' | 'check-status' | 'pending-success';
 
 export interface NostalgiaContent {

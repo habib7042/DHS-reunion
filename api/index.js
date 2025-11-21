@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -46,7 +47,7 @@ const connectToDatabase = async () => {
 
 // Ensure DB is connected for every request
 app.use(async (req, res, next) => {
-  // Skip DB connection for AI routes to speed them up
+  // Skip DB connection for AI routes (except memory refinement which needs AI) to speed them up
   if (req.path.startsWith('/api/chat') || req.path.startsWith('/api/nostalgia')) {
     return next();
   }
@@ -93,10 +94,7 @@ app.post('/api/nostalgia', async (req, res) => {
       }
     });
 
-    // The SDK returns the text directly in response.text() or property depending on version,
-    // checking safely:
     const text = response.text || JSON.stringify(response);
-    // Handle potential parsing if SDK returns object automatically
     const data = typeof text === 'string' ? JSON.parse(text) : text;
     
     res.json(data);
@@ -114,45 +112,13 @@ app.post('/api/chat', async (req, res) => {
 
   const systemPrompt = `
     You are "Habib", a helpful and friendly AI assistant for the Dighali High School Reunion 2026.
-    
-    Event Details:
-    - Event: 97th Anniversary Reunion of Dighali High School (Est. 1929).
-    - Date: 2 Days after Eid-ul-Fitr, 2026.
-    - Location: Dighali High School Premises, Lakshmipur Sadar.
-    - Expected Alumni: 600+.
-    
-    Registration Process:
-    1. Register with personal info (Name, SSC Year, Mobile, etc.).
-    2. Choose a Ticket:
-       - Single Pass: ৳ 1,000 (1 Person).
-       - Couple Pass: ৳ 1,800 (2 People).
-       - Family Pass: ৳ 3,000 (4 People).
-    3. Make Payment via bKash, Nagad, Rocket, or Bank (or Cash at office).
-       - MFS Gateway Fee: 1.8%.
-    4. Submit Transaction ID.
-    5. Wait for Admin Approval.
-    6. Once approved, download the ID Card from the "Download Entry Card" page.
-    
-    School History:
-    - Established: Jan 1, 1929.
-    - Founder: Late Alhaj Ansar Uddin Ahmed.
-    - Recognition: Board recognized since Jan 1, 1959.
-    - Location: Dighali Union, Lakshmipur Sadar.
-    
-    Support:
-    - Developer: Habib (m.me/habib.ahsan0).
-    - Admin Password (if asked): Do not reveal, but you can say "It is for authorized personnel only".
-    
-    Your Goal:
-    - Help users register.
-    - Explain ticket prices.
-    - Tell them about the schedule (Rally at 9:30 AM, Lunch at 1:00 PM, Cultural Event at 5:00 PM).
-    - Keep answers concise and polite.
-    - You can speak in English or Bengali (Banglish is also okay) based on the user's language.
+    Event Details: 97th Anniversary, 2 Days after Eid-ul-Fitr 2026, Dighali High School.
+    Registration: Register -> Select Ticket -> Pay -> Wait for Approval -> Download Card.
+    Ticket Prices: Single (1000), Couple (1800), Family (3000).
+    Support: m.me/habib.ahsan0.
   `;
 
   try {
-    // Clean history to match SDK expectations if needed, ensuring parts structure
     const chat = ai.chats.create({
       model: "gemini-2.5-flash",
       config: { systemInstruction: systemPrompt },
@@ -166,6 +132,26 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ error: "Failed to get response" });
   }
 });
+
+// 3. Memory Refinement Endpoint
+app.post('/api/refine-text', async (req, res) => {
+  if (!ai) return res.status(503).json({ error: "AI Service Unavailable" });
+  
+  const { text } = req.body;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Rewrite the following school memory to be grammatically correct, warm, nostalgic, and concise (under 40 words). Keep the original meaning but make it sound beautiful. Text: "${text}"`,
+    });
+    
+    res.json({ text: response.text });
+  } catch (error) {
+    console.error("Refine Text Error:", error);
+    res.status(500).json({ error: "Failed to refine text" });
+  }
+});
+
 
 // --- DB SCHEMA ---
 const RegistrationSchema = new mongoose.Schema({
@@ -199,18 +185,27 @@ const RegistrationSchema = new mongoose.Schema({
   submissionDate: { type: Date, default: Date.now }
 });
 
+const MemorySchema = new mongoose.Schema({
+  studentName: String,
+  sscYear: Number,
+  text: String,
+  timestamp: { type: Date, default: Date.now }
+});
+
 const Registration = mongoose.models.Registration || mongoose.model('Registration', RegistrationSchema);
+const Memory = mongoose.models.Memory || mongoose.model('Memory', MemorySchema);
+
 
 // --- CRUD ROUTES ---
 
 app.get('/api', (req, res) => {
   res.json({ 
     message: "Dighali Reunion API is running", 
-    environment: process.env.NODE_ENV,
-    database: cachedDb ? 'Connected' : 'Disconnected'
+    environment: process.env.NODE_ENV
   });
 });
 
+// --- REGISTRATION ROUTES ---
 app.get('/api/registrations', async (req, res) => {
   try {
     const registrations = await Registration.find().sort({ submissionDate: -1 });
@@ -259,5 +254,49 @@ app.post('/api/registrations/search', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// --- MEMORY ROUTES ---
+
+// Verify user before letting them post
+app.post('/api/verify-user', async (req, res) => {
+  try {
+    const { mobile, ticketId } = req.body;
+    const reg = await Registration.findOne({ 
+      'student.mobile': mobile, 
+      'ticket.ticketId': ticketId,
+      'status': 'approved'
+    });
+    
+    if (!reg) return res.status(404).json({ verified: false, message: 'Registration not found or not approved yet.' });
+    
+    res.json({ 
+      verified: true, 
+      studentName: reg.student.fullName,
+      sscYear: reg.student.sscYear
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/memories', async (req, res) => {
+  try {
+    const memories = await Memory.find().sort({ timestamp: -1 }).limit(20);
+    res.json(memories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/memories', async (req, res) => {
+  try {
+    const newMem = new Memory(req.body);
+    const savedMem = await newMem.save();
+    res.status(201).json(savedMem);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 
 module.exports = app;
