@@ -10,6 +10,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { StatusCheck } from './components/StatusCheck';
 import { AboutUs } from './components/AboutUs';
 import { AiAssistant } from './components/AiAssistant';
+import { InstallPWA } from './components/InstallPWA';
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
 import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock } from 'lucide-react';
 import { registrationService } from './services/api';
@@ -278,7 +279,6 @@ const App: React.FC = () => {
             student={studentData} 
             ticket={ticketData} 
             logo={schoolLogo}
-            onLogoChange={setSchoolLogo}
           />
         )}
 
@@ -296,6 +296,9 @@ const App: React.FC = () => {
         )}
       </main>
       
+      {/* PWA Install Button */}
+      <InstallPWA />
+
       {/* AI Assistant Floating Button */}
       <AiAssistant />
       
