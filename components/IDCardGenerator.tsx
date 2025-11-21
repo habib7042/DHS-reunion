@@ -205,13 +205,13 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         </div>
       </div>
 
-      {/* The Card Container - Resized to 300x600 */}
+      {/* The Card Container - Responsive Size (Not fixed height) */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[300px] h-[600px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-full max-w-[320px] min-h-[500px] h-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
           >
             
             {/* Decorative holographic overlay */}
@@ -242,14 +242,14 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
             </div>
 
-            {/* Content - Padding Reduced */}
+            {/* Content - Auto Height */}
             <div className="p-3 flex-grow flex flex-col relative bg-white">
               {/* Badge */}
               <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[8px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
                 97 Years Celebration
               </div>
 
-              {/* Photo Area - Reduced Size */}
+              {/* Photo Area */}
               <div className="text-center mt-4 mb-2 relative z-30">
                 <div 
                   className="w-24 h-24 mx-auto rounded-full border-[3px] border-white shadow-md mb-1.5 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
@@ -281,12 +281,12 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                   )}
                 </div>
 
-                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1 px-1 mt-2">{student.fullName}</h2>
-                <p className="text-school-primary font-medium text-xs mt-0.5 line-clamp-1 px-1">{student.occupation}</p>
+                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight px-1 mt-2">{student.fullName}</h2>
+                <p className="text-school-primary font-medium text-xs mt-0.5 px-1">{student.occupation}</p>
               </div>
 
               {/* Details Grid - Compact spacing */}
-              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-4 mt-2">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-6 mt-4">
                 <div>
                   <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
                   <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
@@ -297,7 +297,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                 </div>
                 <div>
                   <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
-                  <p className="font-mono text-slate-600 text-[10px] leading-tight">{ticket.ticketId}</p>
+                  <p className="font-mono text-slate-600 text-[10px] leading-tight break-all">{ticket.ticketId}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
@@ -305,7 +305,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                 </div>
               </div>
 
-              {/* QR Code - Optimized Size for 600px height */}
+              {/* QR Code - Pushed to bottom */}
               <div className="mt-auto flex flex-col items-center justify-center pb-6">
                 <div className="bg-white p-2 rounded-md border border-slate-200 shadow-sm">
                   <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={80} level="H" />

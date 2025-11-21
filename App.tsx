@@ -12,7 +12,7 @@ import { AboutUs } from './components/AboutUs';
 import { AiAssistant } from './components/AiAssistant';
 import { InstallPWA } from './components/InstallPWA';
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
-import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock } from 'lucide-react';
+import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock, Timer } from 'lucide-react';
 import { registrationService } from './services/api';
 
 const App: React.FC = () => {
@@ -24,6 +24,32 @@ const App: React.FC = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Countdown Logic
+  const REGISTRATION_START_DATE = new Date('2025-12-01T00:00:00');
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const difference = REGISTRATION_START_DATE.getTime() - now.getTime();
+
+      if (difference <= 0) {
+        setIsRegistrationOpen(true);
+        clearInterval(timer);
+      } else {
+        setIsRegistrationOpen(false);
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / 1000 / 60) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
   
   // Custom "97" Logo - Base64 SVG
   const NEW_LOGO_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMWUzYThhIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmJiZjI0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZDk3NzA2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNDUiIGZpbGw9InVybCgjZzEpIiBzdHJva2U9InVybCgjZzIpIiBzdHJva2Utd2lkdGg9IjEwIi8+PHRleHQgeD0iMjU2IiB5PSIzNDAiIGZvbnQtZmFtaWx5PSJzZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMjQwIiBmaWxsPSJ1cmwoI2cyKSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgc3R5bGU9ImZpbHRlcjpkcm9wLXNoYWRvdyg0cHggNHB4IDAgcmdiYSgwLDAsMCwwLjUpKSI+OTc8L3RleHQ+PHBhdGggaWQ9ImMiIGQ9Ik0xNDAsMzgwIFEyNTYsNDUwIDM3MiwzODAiIGZpbGw9Im5vbmUiLz48dGV4dCBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMzUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iNSI+PHRleHRQYXRoIGhyZWY9IiNjIiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SRVVOSU9OPC90ZXh0UGF0aD48L3RleHQ+PHRleHQgeD0iMjU2IiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjOTNjNWZkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+RVNULiAxOTI5PC90ZXh0Pjwvc3ZnPg==';
@@ -113,6 +139,12 @@ const App: React.FC = () => {
   };
 
   const navigate = (targetView: AppView) => {
+    // Gate registration view
+    if (targetView === 'register' && !isRegistrationOpen) {
+      alert("Registration opens on December 01, 2025!");
+      return;
+    }
+
     setView(targetView);
     if (targetView === 'home' || targetView === 'check-status') {
       setStudentData(null);
@@ -146,20 +178,48 @@ const App: React.FC = () => {
                 Calling all Dighali High School alumni (Est. 1929). Let's reunite to celebrate nearly a century of friendship, memories, and excellence.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
-                <button 
-                  onClick={() => navigate('register')}
-                  className="group bg-school-accent text-school-primary hover:bg-white hover:text-school-primary font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transform hover:-translate-y-1 flex items-center justify-center"
-                >
-                  Register Now <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button 
-                  onClick={() => navigate('check-status')}
-                  className="bg-transparent border-2 border-white/30 backdrop-blur-sm text-white hover:bg-white hover:text-school-primary font-bold py-4 px-10 rounded-full transition-all duration-300 flex items-center justify-center hover:shadow-lg"
-                >
-                  Download Entry Card
-                </button>
-              </div>
+              {!isRegistrationOpen ? (
+                <div className="mb-10 animate-fade-in-up">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-2xl max-w-3xl mx-auto">
+                    <div className="flex items-center justify-center gap-2 text-school-accent mb-4 font-bold uppercase tracking-widest text-sm">
+                      <Timer className="w-5 h-5" /> Registration Opens In
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       {Object.entries(timeLeft).map(([unit, value]) => (
+                         <div key={unit} className="bg-slate-900/50 p-4 rounded-xl border border-white/10 min-w-[80px] sm:min-w-[100px]">
+                           <div className="text-3xl md:text-4xl font-bold text-white tabular-nums">{String(value).padStart(2, '0')}</div>
+                           <div className="text-[10px] md:text-xs text-blue-200 uppercase tracking-wider mt-1">{unit}</div>
+                         </div>
+                       ))}
+                    </div>
+                    <p className="text-blue-200 text-sm mt-6">Mark your calendar for December 01, 2025</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto animate-fade-in-up">
+                  <button 
+                    onClick={() => navigate('register')}
+                    className="group bg-school-accent text-school-primary hover:bg-white hover:text-school-primary font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transform hover:-translate-y-1 flex items-center justify-center"
+                  >
+                    Register Now <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={() => navigate('check-status')}
+                    className="bg-transparent border-2 border-white/30 backdrop-blur-sm text-white hover:bg-white hover:text-school-primary font-bold py-4 px-10 rounded-full transition-all duration-300 flex items-center justify-center hover:shadow-lg"
+                  >
+                    Download Entry Card
+                  </button>
+                </div>
+              )}
+
+              {!isRegistrationOpen && (
+                 <button 
+                    onClick={() => navigate('check-status')}
+                    className="mt-8 text-white/80 hover:text-white underline decoration-dotted text-sm font-medium"
+                  >
+                    Already registered? Check Status
+                  </button>
+              )}
             </div>
             
             {/* Stats Section */}
