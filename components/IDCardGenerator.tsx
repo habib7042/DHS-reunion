@@ -205,13 +205,13 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         </div>
       </div>
 
-      {/* The Card Container - Resized to 300x500 */}
+      {/* The Card Container - Resized to 300x600 */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[300px] h-[500px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-[300px] h-[600px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
           >
             
             {/* Decorative holographic overlay */}
@@ -250,9 +250,9 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
 
               {/* Photo Area - Reduced Size */}
-              <div className="text-center mt-2 mb-2 relative z-30">
+              <div className="text-center mt-4 mb-2 relative z-30">
                 <div 
-                  className="w-20 h-20 mx-auto rounded-full border-[3px] border-white shadow-md mb-1.5 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
+                  className="w-24 h-24 mx-auto rounded-full border-[3px] border-white shadow-md mb-1.5 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
                   onClick={triggerFileInput}
                 >
                   <input 
@@ -266,57 +266,57 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                   {photo ? (
                     <img src={photo} alt={student.fullName} className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-8 h-8 text-slate-300" />
+                    <User className="w-10 h-10 text-slate-300" />
                   )}
                   
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity duration-200 no-print">
-                    <ImagePlus className="w-4 h-4 text-white mb-0.5" />
-                    <span className="text-[6px] text-white font-bold uppercase tracking-wider">Upload</span>
+                    <ImagePlus className="w-5 h-5 text-white mb-0.5" />
+                    <span className="text-[7px] text-white font-bold uppercase tracking-wider">Upload</span>
                   </div>
 
                   {student.isVolunteer && (
-                    <div className="absolute bottom-0 w-full bg-school-accent text-[6px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
+                    <div className="absolute bottom-0 w-full bg-school-accent text-[7px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
                       Volunteer
                     </div>
                   )}
                 </div>
 
-                <h2 className="text-base font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1 px-1">{student.fullName}</h2>
-                <p className="text-school-primary font-medium text-[10px] mt-0.5 line-clamp-1 px-1">{student.occupation}</p>
+                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1 px-1 mt-2">{student.fullName}</h2>
+                <p className="text-school-primary font-medium text-xs mt-0.5 line-clamp-1 px-1">{student.occupation}</p>
               </div>
 
               {/* Details Grid - Compact spacing */}
-              <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs bg-slate-50 rounded-lg p-2.5 border border-slate-100 mb-2">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-4 mt-2">
                 <div>
-                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
-                  <p className="font-bold text-slate-800 text-xs">{student.sscYear}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
+                  <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
-                  <p className="font-bold text-school-secondary uppercase text-[10px]">{ticket.type}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
+                  <p className="font-bold text-school-secondary uppercase text-xs">{ticket.type}</p>
                 </div>
                 <div>
-                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
-                  <p className="font-mono text-slate-600 text-[9px] leading-tight">{ticket.ticketId}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
+                  <p className="font-mono text-slate-600 text-[10px] leading-tight">{ticket.ticketId}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[7px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
-                  <p className="font-bold text-slate-800 text-xs">{ticket.guests}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
+                  <p className="font-bold text-slate-800 text-sm">{ticket.guests}</p>
                 </div>
               </div>
 
-              {/* QR Code - Compact Size */}
-              <div className="mt-auto flex flex-col items-center justify-center pb-1">
-                <div className="bg-white p-1 rounded-md border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={50} level="H" />
+              {/* QR Code - Optimized Size for 600px height */}
+              <div className="mt-auto flex flex-col items-center justify-center pb-6">
+                <div className="bg-white p-2 rounded-md border border-slate-200 shadow-sm">
+                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={80} level="H" />
                 </div>
-                <p className="text-center text-[7px] text-slate-400 mt-1 font-mono">Scan for Entry</p>
+                <p className="text-center text-[10px] text-slate-400 mt-2 font-mono tracking-wide">Scan for Entry</p>
               </div>
             </div>
             
             {/* Footer Strip */}
-            <div className="bg-slate-800 h-5 w-full flex items-center justify-center flex-shrink-0">
-              <p className="text-[7px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
+            <div className="bg-slate-800 h-6 w-full flex items-center justify-center flex-shrink-0">
+              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
             </div>
           </div>
         </div>
