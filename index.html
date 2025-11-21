@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script>
       // Simple polyfill for global process to prevent crashes in third-party libs
-      window.process = { env: { API_KEY: '', NODE_ENV: 'development' } };
+      // Vite config also handles this for the bundle, but this protects runtime before bundle load
+      window.process = window.process || { env: { API_KEY: '', NODE_ENV: 'production' } };
 
       tailwind.config = {
         theme: {
@@ -45,16 +45,16 @@
   <script type="importmap">
 {
   "imports": {
-    "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0",
     "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0"
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
