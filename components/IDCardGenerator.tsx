@@ -76,9 +76,10 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       
-      // Fixed card dimensions in mm for PDF
-      const imgWidth = 90; // Standard badge width
-      const imgHeight = 145; // Standard badge height
+      // Dynamic height calculation based on the captured canvas aspect ratio
+      const canvasRatio = canvas.height / canvas.width;
+      const imgWidth = 100; // 100mm width (approx 400px scaled)
+      const imgHeight = imgWidth * canvasRatio;
       
       const x = (pdfWidth - imgWidth) / 2;
       const y = 20;
@@ -143,7 +144,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             left: 0;
             top: 0;
             width: 100%;
-            height: 100%;
+            height: auto !important;
             justify-content: center;
             align-items: flex-start;
             padding-top: 20px;
@@ -202,27 +203,27 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         </div>
       </div>
 
-      {/* The Card Container - Vertical Event Badge (Approx 300x540) */}
+      {/* The Card Container - Vertical Event Badge (Width 400px, Auto Height) */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group drop-shadow-2xl">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[320px] h-[540px] bg-white rounded-xl overflow-hidden border-0 relative flex flex-col"
+            className="w-[400px] min-h-[600px] h-auto bg-white rounded-xl overflow-hidden border-0 relative flex flex-col pb-8"
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(#1e3a8a 1px, transparent 1px)', backgroundSize: '12px 12px'}}></div>
             
             {/* Top Decorative Stripe */}
-            <div className="h-2 w-full bg-gradient-to-r from-school-primary via-school-accent to-school-primary"></div>
+            <div className="h-2 w-full bg-gradient-to-r from-school-primary via-school-accent to-school-primary shrink-0"></div>
 
             {/* Header */}
-            <div className="pt-6 pb-2 text-center relative z-10">
+            <div className="pt-6 pb-2 text-center relative z-10 shrink-0">
               <div className="flex flex-col items-center">
                 <div className="w-14 h-14 mb-2 bg-white rounded-full p-0.5 border border-slate-100 shadow-sm">
                    <img src={logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
-                <h1 className="text-school-primary font-serif font-bold text-lg leading-tight">DIGHALI HIGH SCHOOL</h1>
+                <h1 className="text-school-primary font-serif font-bold text-xl leading-tight">DIGHALI HIGH SCHOOL</h1>
                 <div className="flex items-center gap-2 mt-1">
                    <div className="h-[1px] w-6 bg-school-accent"></div>
                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Est. 1929</span>
@@ -232,16 +233,16 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             </div>
 
             {/* Main Badge Content */}
-            <div className="flex-grow flex flex-col items-center px-6 pt-2 relative z-10">
+            <div className="flex-grow flex flex-col items-center px-6 pt-2 pb-6 relative z-10">
               
               {/* Event Title Badge */}
-              <div className="mb-5 bg-gradient-to-r from-school-primary to-blue-800 text-white px-4 py-1.5 rounded-full shadow-md">
+              <div className="mb-5 bg-gradient-to-r from-school-primary to-blue-800 text-white px-4 py-1.5 rounded-full shadow-md shrink-0">
                  <span className="text-[10px] font-bold uppercase tracking-widest">Reunion 2026</span>
               </div>
 
               {/* Photo with Ring */}
               <div 
-                 className="w-32 h-32 rounded-full p-1 bg-white border-2 border-school-accent/50 shadow-lg mb-4 cursor-pointer group/photo relative"
+                 className="w-36 h-36 rounded-full p-1 bg-white border-2 border-school-accent/50 shadow-lg mb-5 cursor-pointer group/photo relative shrink-0"
                  onClick={triggerFileInput}
               >
                  <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
@@ -250,7 +251,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                       <img src={photo} alt="Student" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                         <User className="w-12 h-12 text-slate-300" />
+                         <User className="w-14 h-14 text-slate-300" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity no-print">
@@ -259,7 +260,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                  </div>
                  {/* Volunteer Tag */}
                  {student.isVolunteer && (
-                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-school-accent text-school-primary text-[9px] font-bold px-3 py-0.5 rounded border border-white uppercase">
+                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-school-accent text-school-primary text-[10px] font-bold px-3 py-0.5 rounded border border-white uppercase">
                      Volunteer
                    </div>
                  )}
@@ -267,34 +268,34 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
               {/* Name & Title */}
               <div className="text-center w-full mb-6">
-                <h2 className="text-xl font-bold text-slate-900 uppercase leading-tight break-words font-serif">{student.fullName}</h2>
-                <p className="text-school-secondary text-xs font-bold mt-1 uppercase tracking-wide">{student.occupation}</p>
+                <h2 className="text-2xl font-bold text-slate-900 uppercase leading-tight break-words font-serif">{student.fullName}</h2>
+                <p className="text-school-secondary text-sm font-bold mt-1 uppercase tracking-wide">{student.occupation}</p>
               </div>
 
               {/* Info Grid */}
-              <div className="w-full grid grid-cols-2 gap-3 text-center border-t border-b border-slate-100 py-3 mb-auto">
+              <div className="w-full grid grid-cols-2 gap-3 text-center border-t border-b border-slate-100 py-4 mb-auto shrink-0">
                 <div>
-                   <span className="block text-[9px] text-slate-400 font-bold uppercase">Batch</span>
-                   <span className="block text-lg font-bold text-school-primary">{student.sscYear}</span>
+                   <span className="block text-[10px] text-slate-400 font-bold uppercase">Batch</span>
+                   <span className="block text-2xl font-bold text-school-primary">{student.sscYear}</span>
                 </div>
                 <div className="border-l border-slate-100">
-                   <span className="block text-[9px] text-slate-400 font-bold uppercase">Guests</span>
-                   <span className="block text-lg font-bold text-school-primary">{ticket.guests}</span>
+                   <span className="block text-[10px] text-slate-400 font-bold uppercase">Guests</span>
+                   <span className="block text-2xl font-bold text-school-primary">{ticket.guests}</span>
                 </div>
               </div>
 
               {/* QR Code Section */}
-              <div className="pt-3 pb-2 flex flex-col items-center">
-                 <div className="bg-white p-1.5 border border-slate-200 rounded shadow-sm">
-                    <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="M" />
+              <div className="pt-6 flex flex-col items-center shrink-0">
+                 <div className="bg-white p-2 border border-slate-200 rounded shadow-sm">
+                    <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={120} level="M" />
                  </div>
-                 <p className="text-[9px] font-mono text-slate-400 mt-1.5">{ticket.ticketId}</p>
+                 <p className="text-[10px] font-mono text-slate-400 mt-2">{ticket.ticketId}</p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="bg-slate-900 text-center py-3 mt-2">
-              <p className="text-[9px] text-school-accent font-bold uppercase tracking-widest">Authorized Entry • 97 Years</p>
+            <div className="bg-slate-900 text-center py-3 mt-auto shrink-0 absolute bottom-0 w-full left-0">
+              <p className="text-[10px] text-school-accent font-bold uppercase tracking-widest">Authorized Entry • 97 Years</p>
             </div>
           </div>
         </div>
