@@ -59,3 +59,64 @@ export const generateNostalgiaData = async (year: number): Promise<NostalgiaCont
     return getFallbackData(year);
   }
 };
+
+export const getChatResponse = async (message: string, history: { role: 'user' | 'model', parts: [{ text: string }] }[]) => {
+  if (!process.env.API_KEY) {
+    return "I am currently offline due to a missing API configuration. Please contact support.";
+  }
+
+  const systemPrompt = `
+    You are "Habib", a helpful and friendly AI assistant for the Dighali High School Reunion 2026.
+    
+    Event Details:
+    - Event: 97th Anniversary Reunion of Dighali High School (Est. 1929).
+    - Date: 2 Days after Eid-ul-Fitr, 2026.
+    - Location: Dighali High School Premises, Lakshmipur Sadar.
+    - Expected Alumni: 600+.
+    
+    Registration Process:
+    1. Register with personal info (Name, SSC Year, Mobile, etc.).
+    2. Choose a Ticket:
+       - Single Pass: ৳ 1,000 (1 Person).
+       - Couple Pass: ৳ 1,800 (2 People).
+       - Family Pass: ৳ 3,000 (4 People).
+    3. Make Payment via bKash, Nagad, Rocket, or Bank (or Cash at office).
+       - MFS Gateway Fee: 1.8%.
+    4. Submit Transaction ID.
+    5. Wait for Admin Approval.
+    6. Once approved, download the ID Card from the "Download Entry Card" page.
+    
+    School History:
+    - Established: Jan 1, 1929.
+    - Founder: Late Alhaj Ansar Uddin Ahmed.
+    - Recognition: Board recognized since Jan 1, 1959.
+    - Location: Dighali Union, Lakshmipur Sadar.
+    
+    Support:
+    - Developer: Habib (m.me/habib.ahsan0).
+    - Admin Password (if asked): Do not reveal, but you can say "It is for authorized personnel only".
+    
+    Your Goal:
+    - Help users register.
+    - Explain ticket prices.
+    - Tell them about the schedule (Rally at 9:30 AM, Lunch at 1:00 PM, Cultural Event at 5:00 PM).
+    - Keep answers concise and polite.
+    - You can speak in English or Bengali (Banglish is also okay) based on the user's language.
+  `;
+
+  try {
+    const chat = ai.chats.create({
+      model: "gemini-2.5-flash",
+      config: {
+        systemInstruction: systemPrompt,
+      },
+      history: history
+    });
+
+    const result = await chat.sendMessage({ message });
+    return result.text;
+  } catch (error) {
+    console.error("Chat error:", error);
+    return "I'm having trouble connecting to the server right now. Please try again later.";
+  }
+};

@@ -57,7 +57,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const canvas = await html2canvas(cardRef.current, {
-        scale: 4, // Higher scale for sharp text
+        scale: 3, // Slightly reduced scale to ensure it fits within canvas limits if card is long
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
@@ -80,7 +80,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       const imgProps = pdf.getImageProperties(imgData);
-      const imgWidth = pdfWidth * 0.6; // 60% of page width for better visibility
+      const imgWidth = pdfWidth * 0.65; // Increased width for better readability
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       
       const x = (pdfWidth - imgWidth) / 2;
@@ -168,7 +168,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             width: 100%;
             height: 100%;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align top to prevent cut off */
+            padding-top: 20px;
             z-index: 9999;
           }
           #print-area-container * {
@@ -233,7 +234,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[350px] h-[580px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-[350px] min-h-[580px] h-auto bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
           >
             
             {/* Decorative holographic overlay effect (Visual only) */}
@@ -249,7 +250,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               <div className="flex flex-col items-center justify-center h-full relative z-10 pt-1 pb-2">
                 {/* Logo Container - Clickable for upload */}
                 <div 
-                  className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-2 shadow-xl border-4 border-school-accent p-1 overflow-hidden relative group/logo cursor-pointer"
+                  className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-2 shadow-xl border-4 border-school-accent p-1 relative group/logo cursor-pointer"
                   onClick={triggerLogoInput}
                   title="Click to change school logo"
                 >
@@ -345,7 +346,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
 
               {/* QR Code */}
-              <div className="mt-auto flex flex-col items-center justify-center">
+              <div className="mt-auto flex flex-col items-center justify-center pb-2">
                 <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
                   <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="H" />
                 </div>
@@ -354,7 +355,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             </div>
             
             {/* Footer Strip */}
-            <div className="bg-slate-800 h-8 w-full flex items-center justify-center">
+            <div className="bg-slate-800 h-8 w-full flex items-center justify-center flex-shrink-0">
               <p className="text-[10px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
             </div>
           </div>

@@ -40,7 +40,7 @@ export interface Registration {
   submissionDate: string;
 }
 
-export type AppView = 'home' | 'register' | 'booking' | 'payment' | 'id-card' | 'schedule' | 'admin-login' | 'admin-dashboard' | 'check-status' | 'pending-success';
+export type AppView = 'home' | 'about' | 'register' | 'booking' | 'payment' | 'id-card' | 'schedule' | 'admin-login' | 'admin-dashboard' | 'check-status' | 'pending-success';
 
 export interface NostalgiaContent {
   fact: string;

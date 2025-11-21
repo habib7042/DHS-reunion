@@ -17,10 +17,23 @@ const connectToDatabase = async () => {
     return cachedDb;
   }
 
-  const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dighali_reunion';
+  const MONGO_URI = process.env.MONGO_URI;
+
+  if (!MONGO_URI) {
+    // In production (Vercel), this is a fatal error.
+    if (process.env.NODE_ENV === 'production') {
+      const errorMsg = "❌ FATAL: MONGO_URI is missing. Go to Vercel Settings > Environment Variables and add your MongoDB connection string.";
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    // Local development fallback
+    console.log("⚠️  MONGO_URI not found. Using local fallback: mongodb://localhost:27017/dighali_reunion");
+  }
+
+  const connectionString = MONGO_URI || 'mongodb://localhost:27017/dighali_reunion';
 
   try {
-    const db = await mongoose.connect(MONGO_URI, {
+    const db = await mongoose.connect(connectionString, {
       serverSelectionTimeoutMS: 5000 // Fail fast if no connection
     });
     console.log('✅ MongoDB Connected');
@@ -38,7 +51,11 @@ app.use(async (req, res, next) => {
     await connectToDatabase();
     next();
   } catch (error) {
-    res.status(500).json({ error: 'Database connection failed' });
+    console.error("Database Middleware Error:", error);
+    res.status(500).json({ 
+      error: 'Database connection failed', 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 
@@ -81,7 +98,11 @@ const Registration = mongoose.models.Registration || mongoose.model('Registratio
 
 // 1. Root test route
 app.get('/api', (req, res) => {
-  res.json({ message: "Dighali Reunion API is running" });
+  res.json({ 
+    message: "Dighali Reunion API is running", 
+    environment: process.env.NODE_ENV,
+    database: cachedDb ? 'Connected' : 'Disconnected'
+  });
 });
 
 // 2. Get all registrations (Admin)

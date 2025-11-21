@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { RegistrationForm } from './components/RegistrationForm';
@@ -7,6 +8,8 @@ import { EventSchedule } from './components/EventSchedule';
 import { PaymentGateway } from './components/PaymentGateway';
 import { AdminDashboard } from './components/AdminDashboard';
 import { StatusCheck } from './components/StatusCheck';
+import { AboutUs } from './components/AboutUs';
+import { AiAssistant } from './components/AiAssistant';
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
 import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock } from 'lucide-react';
 import { registrationService } from './services/api';
@@ -23,7 +26,6 @@ const App: React.FC = () => {
   
   // Custom "97" Logo - Base64 SVG
   const NEW_LOGO_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMWUzYThhIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmJiZjI0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZDk3NzA2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNDUiIGZpbGw9InVybCgjZzEpIiBzdHJva2U9InVybCgjZzIpIiBzdHJva2Utd2lkdGg9IjEwIi8+PHRleHQgeD0iMjU2IiB5PSIzNDAiIGZvbnQtZmFtaWx5PSJzZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMjQwIiBmaWxsPSJ1cmwoI2cyKSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgc3R5bGU9ImZpbHRlcjpkcm9wLXNoYWRvdyg0cHggNHB4IDAgcmdiYSgwLDAsMCwwLjUpKSI+OTc8L3RleHQ+PHBhdGggaWQ9ImMiIGQ9Ik0xNDAsMzgwIFEyNTYsNDUwIDM3MiwzODAiIGZpbGw9Im5vbmUiLz48dGV4dCBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMzUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iNSI+PHRleHRQYXRoIGhyZWY9IiNjIiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SRVVOSU9OPC90ZXh0UGF0aD48L3RleHQ+PHRleHQgeD0iMjU2IiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjOTNjNWZkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+RVNULiAxOTI5PC90ZXh0Pjwvc3ZnPg==';
-  const OLD_DEFAULT = 'https://cdn-icons-png.flaticon.com/512/2997/2997254.png';
 
   // Assets with LocalStorage persistence - Key updated to force refresh for 97 version
   const [schoolLogo, setSchoolLogo] = useState<string>(() => {
@@ -196,6 +198,10 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {view === 'about' && (
+          <AboutUs />
+        )}
+
         {view === 'schedule' && (
           <EventSchedule />
         )}
@@ -290,6 +296,9 @@ const App: React.FC = () => {
         )}
       </main>
       
+      {/* AI Assistant Floating Button */}
+      <AiAssistant />
+      
       <footer className="bg-slate-900 text-slate-400 py-12 mt-auto no-print border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="mb-6 flex justify-center">
@@ -306,7 +315,7 @@ const App: React.FC = () => {
                   <Lock className="w-3 h-3 mr-1" /> Admin
                 </button>
                 <p className="flex items-center">
-                  Made with <span className="text-red-500 mx-1">♥</span> by Alumni Association
+                  Made with <span className="text-red-500 mx-1">♥</span> by <a href="https://m.me/habib.ahsan0" target="_blank" rel="noopener noreferrer" className="ml-1 hover:text-white transition-colors underline decoration-dotted">Habib</a>
                 </p>
              </div>
           </div>

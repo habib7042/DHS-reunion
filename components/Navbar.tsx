@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Home, Calendar, Search, UserCheck } from 'lucide-react';
+import { Menu, X, Home, Calendar, Search, BookOpen } from 'lucide-react';
 import { AppView } from '../types';
 
 interface NavbarProps {
@@ -47,6 +47,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
                 <Home className="w-4 h-4 mr-2" /> Home
               </button>
               <button 
+                onClick={() => handleNav('about')} 
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('about')}`}
+              >
+                <BookOpen className="w-4 h-4 mr-2" /> History
+              </button>
+              <button 
                 onClick={() => handleNav('schedule')} 
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('schedule')}`}
               >
@@ -88,6 +94,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'home' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
               Home
+            </button>
+            <button 
+              onClick={() => handleNav('about')}
+              className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'about' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
+            >
+              School History
             </button>
             <button 
               onClick={() => handleNav('schedule')}
