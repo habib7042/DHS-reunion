@@ -1,7 +1,7 @@
-
 import { Registration } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+// Use relative URL so it works on Vercel (same domain) and Localhost (via Vite proxy)
+const API_URL = '/api';
 
 // Helper to check if backend is likely down
 const handleApiError = (error: any, fallbackAction: () => any) => {
