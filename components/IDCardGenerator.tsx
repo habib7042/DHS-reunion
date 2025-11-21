@@ -57,12 +57,11 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3, // Slightly reduced scale to ensure it fits within canvas limits if card is long
+        scale: 3, 
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         allowTaint: true,
-        // Safely check for classList to avoid crashing on text nodes
         ignoreElements: (element) => {
           if (!element || !element.classList) return false;
           return element.classList.contains('no-print');
@@ -80,7 +79,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       const imgProps = pdf.getImageProperties(imgData);
-      const imgWidth = pdfWidth * 0.65; // Increased width for better readability
+      // Adjusted for the new smaller card size to look good on A4
+      const imgWidth = 80; // approx 300px converted to physical width relative to A4
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       
       const x = (pdfWidth - imgWidth) / 2;
@@ -154,11 +154,9 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             visibility: hidden;
             background-color: white;
           }
-          /* Hide everything by default */
           #root > * {
             display: none;
           }
-          /* Only show the ID card container */
           #print-area-container {
             display: flex !important;
             visibility: visible;
@@ -168,18 +166,16 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             width: 100%;
             height: 100%;
             justify-content: center;
-            align-items: flex-start; /* Align top to prevent cut off */
+            align-items: flex-start;
             padding-top: 20px;
             z-index: 9999;
           }
           #print-area-container * {
             visibility: visible;
           }
-          /* Hide non-printable elements explicitly */
           .no-print {
             display: none !important;
           }
-          /* Force colors */
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -228,29 +224,28 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         <p className="text-xs text-slate-400 mt-3">Tip: Click the School Logo on the card to upload your own.</p>
       </div>
 
-      {/* The Card Container - Wrapped for Print Isolation */}
+      {/* The Card Container - Resized to 300x500 */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-[350px] min-h-[580px] h-auto bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-[300px] h-[500px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
           >
             
-            {/* Decorative holographic overlay effect (Visual only) */}
+            {/* Decorative holographic overlay */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-50 pointer-events-none z-10 print:hidden no-print"></div>
 
-            {/* Header */}
-            <div className="bg-school-primary h-40 relative overflow-hidden flex-shrink-0">
-              {/* Background pattern */}
+            {/* Header - Reduced height to 128px (h-32) */}
+            <div className="bg-school-primary h-32 relative overflow-hidden flex-shrink-0">
               <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '10px 10px'}}></div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-school-accent rounded-full opacity-30 blur-2xl"></div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400 rounded-full opacity-20 blur-2xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-school-accent rounded-full opacity-30 blur-2xl"></div>
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400 rounded-full opacity-20 blur-2xl"></div>
 
               <div className="flex flex-col items-center justify-center h-full relative z-10 pt-1 pb-2">
-                {/* Logo Container - Clickable for upload */}
+                {/* Logo - Reduced to 64px (w-16) */}
                 <div 
-                  className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-2 shadow-xl border-4 border-school-accent p-1 relative group/logo cursor-pointer"
+                  className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-1.5 shadow-xl border-4 border-school-accent p-1 relative group/logo cursor-pointer"
                   onClick={triggerLogoInput}
                   title="Click to change school logo"
                 >
@@ -264,33 +259,32 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                   
                   <img src={logo} alt="School Logo" className="w-full h-full object-contain rounded-full" />
 
-                  {/* Hover Overlay for Logo Upload */}
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 no-print rounded-full">
-                    <Upload className="w-6 h-6 text-white" />
+                    <Upload className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 
-                {/* Text below logo */}
-                <h1 className="text-white font-serif font-bold text-lg tracking-wider uppercase text-shadow-sm">Dighali High School</h1>
+                {/* Text below logo - Scaled down */}
+                <h1 className="text-white font-serif font-bold text-base tracking-wider uppercase text-shadow-sm">Dighali High School</h1>
                 <div className="flex items-center space-x-2 mt-0.5">
-                   <span className="h-[1px] w-6 bg-school-accent/50"></span>
-                   <p className="text-school-accent text-[10px] font-bold tracking-[0.2em] uppercase">Reunion 2026</p>
-                   <span className="h-[1px] w-6 bg-school-accent/50"></span>
+                   <span className="h-[1px] w-4 bg-school-accent/50"></span>
+                   <p className="text-school-accent text-[9px] font-bold tracking-[0.2em] uppercase">Reunion 2026</p>
+                   <span className="h-[1px] w-4 bg-school-accent/50"></span>
                 </div>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 flex-grow flex flex-col relative bg-white">
+            {/* Content - Padding Reduced */}
+            <div className="p-4 flex-grow flex flex-col relative bg-white">
               {/* Badge */}
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[9px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
                 97 Years Celebration
               </div>
 
-              {/* Photo Area with Upload */}
-              <div className="text-center mt-2 mb-4 relative z-30">
+              {/* Photo Area - Reduced to 96px (w-24) */}
+              <div className="text-center mt-3 mb-3 relative z-30">
                 <div 
-                  className="w-28 h-28 mx-auto rounded-full border-4 border-white shadow-lg mb-3 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
+                  className="w-24 h-24 mx-auto rounded-full border-4 border-white shadow-lg mb-2 overflow-hidden flex items-center justify-center relative ring-1 ring-slate-100 bg-slate-100 group/photo cursor-pointer"
                   onClick={triggerFileInput}
                 >
                   <input 
@@ -304,59 +298,57 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                   {photo ? (
                     <img src={photo} alt={student.fullName} className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-12 h-12 text-slate-300" />
+                    <User className="w-10 h-10 text-slate-300" />
                   )}
                   
-                  {/* Hover Overlay for Upload (Hidden in Print/PDF) */}
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity duration-200 no-print">
-                    <ImagePlus className="w-6 h-6 text-white mb-1" />
-                    <span className="text-[8px] text-white font-bold uppercase tracking-wider">Upload Photo</span>
+                    <ImagePlus className="w-5 h-5 text-white mb-0.5" />
+                    <span className="text-[6px] text-white font-bold uppercase tracking-wider">Upload</span>
                   </div>
 
-                  {/* Volunteer indicator */}
                   {student.isVolunteer && (
-                    <div className="absolute bottom-0 w-full bg-school-accent text-[8px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
+                    <div className="absolute bottom-0 w-full bg-school-accent text-[7px] font-bold py-0.5 text-school-primary text-center uppercase z-20">
                       Volunteer
                     </div>
                   )}
                 </div>
 
-                <h2 className="text-xl font-bold text-slate-900 leading-tight uppercase tracking-tight">{student.fullName}</h2>
-                <p className="text-school-primary font-medium text-sm mt-1">{student.occupation}</p>
+                <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-tight line-clamp-1">{student.fullName}</h2>
+                <p className="text-school-primary font-medium text-xs mt-0.5 line-clamp-1">{student.occupation}</p>
               </div>
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm bg-slate-50 rounded-lg p-4 border border-slate-100 mb-4">
+              {/* Details Grid - Compact spacing */}
+              <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-sm bg-slate-50 rounded-lg p-3 border border-slate-100 mb-3">
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
-                  <p className="font-bold text-slate-800 text-base">{student.sscYear}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
+                  <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
-                  <p className="font-bold text-school-secondary uppercase text-sm">{ticket.type}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Pass Type</p>
+                  <p className="font-bold text-school-secondary uppercase text-xs">{ticket.type}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
-                  <p className="font-mono text-slate-600 text-xs">{ticket.ticketId}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Ticket ID</p>
+                  <p className="font-mono text-slate-600 text-[10px]">{ticket.ticketId}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Guests</p>
-                  <p className="font-bold text-slate-800">{ticket.guests}</p>
+                  <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Guests</p>
+                  <p className="font-bold text-slate-800 text-sm">{ticket.guests}</p>
                 </div>
               </div>
 
-              {/* QR Code */}
-              <div className="mt-auto flex flex-col items-center justify-center pb-2">
-                <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="H" />
+              {/* QR Code - Reduced Size */}
+              <div className="mt-auto flex flex-col items-center justify-center pb-1">
+                <div className="bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={60} level="H" />
                 </div>
-                <p className="text-center text-[10px] text-slate-400 mt-1 font-mono">Scan at Entry Gate</p>
+                <p className="text-center text-[8px] text-slate-400 mt-1 font-mono">Scan at Entry Gate</p>
               </div>
             </div>
             
             {/* Footer Strip */}
-            <div className="bg-slate-800 h-8 w-full flex items-center justify-center flex-shrink-0">
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
+            <div className="bg-slate-800 h-6 w-full flex items-center justify-center flex-shrink-0">
+              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Authorized Entry • 2026</p>
             </div>
           </div>
         </div>

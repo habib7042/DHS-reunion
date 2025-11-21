@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Registration } from '../types';
-import { Lock, CheckCircle, XCircle, Search, DollarSign, Calendar, Smartphone, User } from 'lucide-react';
+import { Lock, CheckCircle, XCircle, Search, DollarSign, Calendar, Smartphone, User, QrCode, X, AlertTriangle } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface AdminDashboardProps {
   registrations: Registration[];
@@ -8,6 +9,13 @@ interface AdminDashboardProps {
   onReject: (id: string) => void;
   onLogin: () => void;
   isAuthenticated: boolean;
+}
+
+interface ScanResult {
+  status: 'success' | 'error' | 'warning';
+  title: string;
+  message: string;
+  data?: Registration;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ 
@@ -20,6 +28,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('');
+  
+  // Scanner State
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +41,105 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setError('');
     } else {
       setError('Invalid admin password');
+    }
+  };
+
+  // Initialize Scanner when isScanning becomes true
+  useEffect(() => {
+    if (isScanning) {
+      // Small timeout to ensure DOM element exists
+      const timeoutId = setTimeout(() => {
+        const scanner = new Html5QrcodeScanner(
+          "reader",
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+          },
+          /* verbose= */ false
+        );
+
+        scanner.render(onScanSuccess, onScanFailure);
+        scannerRef.current = scanner;
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (scannerRef.current) {
+          scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
+        }
+      };
+    }
+  }, [isScanning]);
+
+  const onScanSuccess = (decodedText: string) => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+    }
+    setIsScanning(false);
+    verifyTicket(decodedText);
+  };
+
+  const onScanFailure = (error: any) => {
+    // console.warn(`Code scan error = ${error}`);
+  };
+
+  const verifyTicket = (qrData: string) => {
+    try {
+      // The QR code contains JSON: { id: ticketId, name: fullName, year: sscYear }
+      const parsed = JSON.parse(qrData);
+      const ticketId = parsed.id;
+
+      if (!ticketId) throw new Error("Invalid QR Data");
+
+      // Search in loaded registrations
+      const match = registrations.find(r => r.ticket.ticketId === ticketId);
+
+      if (!match) {
+        setScanResult({
+          status: 'error',
+          title: 'Invalid Ticket',
+          message: `Ticket ID ${ticketId} does not exist in the database.`
+        });
+        return;
+      }
+
+      if (match.status === 'approved') {
+        setScanResult({
+          status: 'success',
+          title: 'Verified Access',
+          message: `${match.student.fullName} is authorized to enter.`,
+          data: match
+        });
+      } else if (match.status === 'pending') {
+        setScanResult({
+          status: 'warning',
+          title: 'Payment Pending',
+          message: 'This ticket exists but payment is NOT verified yet.',
+          data: match
+        });
+      } else {
+        setScanResult({
+          status: 'error',
+          title: 'Ticket Rejected',
+          message: 'This registration was previously rejected.',
+          data: match
+        });
+      }
+
+    } catch (e) {
+      setScanResult({
+        status: 'error',
+        title: 'Scan Error',
+        message: 'Could not read QR code format. Is this a valid event ticket?'
+      });
+    }
+  };
+
+  const closeScanner = () => {
+    setIsScanning(false);
+    if (scannerRef.current) {
+      scannerRef.current.clear();
     }
   };
 
@@ -86,13 +198,94 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     .reduce((acc, curr) => acc + curr.payment.total, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in relative">
+      
+      {/* SCANNER MODAL */}
+      {(isScanning || scanResult) && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
+            <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
+              <h3 className="font-bold flex items-center">
+                <QrCode className="w-5 h-5 mr-2" /> 
+                {isScanning ? 'Scanning Ticket...' : 'Scan Result'}
+              </h3>
+              <button onClick={() => { closeScanner(); setScanResult(null); }} className="hover:bg-white/20 p-1 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {isScanning && (
+                <div className="overflow-hidden rounded-xl bg-black">
+                  <div id="reader" className="w-full"></div>
+                </div>
+              )}
+
+              {scanResult && (
+                <div className="text-center">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    scanResult.status === 'success' ? 'bg-green-100 text-green-600' :
+                    scanResult.status === 'warning' ? 'bg-amber-100 text-amber-600' :
+                    'bg-red-100 text-red-600'
+                  }`}>
+                    {scanResult.status === 'success' ? <CheckCircle className="w-10 h-10" /> :
+                     scanResult.status === 'warning' ? <AlertTriangle className="w-10 h-10" /> :
+                     <XCircle className="w-10 h-10" />}
+                  </div>
+                  
+                  <h4 className={`text-xl font-bold mb-2 ${
+                    scanResult.status === 'success' ? 'text-green-700' :
+                    scanResult.status === 'warning' ? 'text-amber-700' :
+                    'text-red-700'
+                  }`}>
+                    {scanResult.title}
+                  </h4>
+                  
+                  <p className="text-slate-600 mb-6">{scanResult.message}</p>
+
+                  {scanResult.data && (
+                    <div className="bg-slate-50 p-4 rounded-xl text-left text-sm border border-slate-200 mb-6">
+                      <div className="grid grid-cols-2 gap-2">
+                        <p className="text-slate-500">Name:</p>
+                        <p className="font-bold text-slate-800">{scanResult.data.student.fullName}</p>
+                        
+                        <p className="text-slate-500">Ticket ID:</p>
+                        <p className="font-mono text-slate-800">{scanResult.data.ticket.ticketId}</p>
+                        
+                        <p className="text-slate-500">Batch:</p>
+                        <p className="font-bold text-slate-800">{scanResult.data.student.sscYear}</p>
+                        
+                        <p className="text-slate-500">Guests:</p>
+                        <p className="font-bold text-slate-800">{scanResult.data.ticket.guests}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => { setScanResult(null); setIsScanning(true); }}
+                    className="w-full bg-school-primary text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors"
+                  >
+                    Scan Another
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-serif font-bold text-school-primary">Admin Dashboard</h2>
           <p className="text-slate-600">Manage registrations and verify payments.</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+          <button 
+            onClick={() => setIsScanning(true)}
+            className="bg-school-primary text-white px-5 py-2 rounded-lg hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20 flex items-center font-bold transform hover:-translate-y-0.5"
+          >
+            <QrCode className="w-5 h-5 mr-2" /> Scan Ticket
+          </button>
           <div className="bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 text-amber-800">
             <span className="block text-xs font-bold uppercase">Pending</span>
             <span className="text-xl font-bold">{pendingCount}</span>
