@@ -108,13 +108,16 @@ export const registrationService = {
 };
 
 export const memoryService = {
-  verifyUser: async (mobile: string, ticketId: string) => {
+  verifyUser: async (mobile: string, sscYear: string) => {
     const response = await fetch(`${API_URL}/verify-user`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile, ticketId })
+      body: JSON.stringify({ mobile, sscYear })
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Verification failed');
+    }
     return await response.json();
   },
 

@@ -257,17 +257,23 @@ app.post('/api/registrations/search', async (req, res) => {
 
 // --- MEMORY ROUTES ---
 
-// Verify user before letting them post
+// Verify user by mobile and SSC year before letting them post
 app.post('/api/verify-user', async (req, res) => {
   try {
-    const { mobile, ticketId } = req.body;
+    const { mobile, sscYear } = req.body;
+    // Check for an APPROVED registration with matching mobile and year
     const reg = await Registration.findOne({ 
       'student.mobile': mobile, 
-      'ticket.ticketId': ticketId,
+      'student.sscYear': Number(sscYear),
       'status': 'approved'
     });
     
-    if (!reg) return res.status(404).json({ verified: false, message: 'Registration not found or not approved yet.' });
+    if (!reg) {
+      return res.status(404).json({ 
+        verified: false, 
+        message: 'You are not approved user.' 
+      });
+    }
     
     res.json({ 
       verified: true, 

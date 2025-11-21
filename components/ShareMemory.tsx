@@ -1,18 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { memoryService } from '../services/api';
-import { Sparkles, Send, CheckCircle, AlertCircle, Lock, Wand2 } from 'lucide-react';
+import { Sparkles, Send, CheckCircle, AlertCircle, Lock, Wand2, Calendar } from 'lucide-react';
 
 interface ShareMemoryProps {
   onSuccess: () => void;
+  preVerifiedStudent?: { fullName: string; sscYear: number };
 }
 
-export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
+export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess, preVerifiedStudent }) => {
   const [step, setStep] = useState<'verify' | 'write'>('verify');
   
   // Verification State
   const [mobile, setMobile] = useState('');
-  const [ticketId, setTicketId] = useState('');
+  const [sscYear, setSscYear] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   
@@ -24,21 +25,30 @@ export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
   const [isRefining, setIsRefining] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (preVerifiedStudent) {
+      setUserData({
+        studentName: preVerifiedStudent.fullName,
+        sscYear: preVerifiedStudent.sscYear
+      });
+      setStep('write');
+    }
+  }, [preVerifiedStudent]);
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsVerifying(true);
     setError('');
 
     try {
-      const result = await memoryService.verifyUser(mobile, ticketId);
+      const result = await memoryService.verifyUser(mobile, sscYear);
       if (result && result.verified) {
         setUserData({ studentName: result.studentName, sscYear: result.sscYear });
         setStep('write');
-      } else {
-        setError('Could not verify. Ensure your registration is Approved.');
       }
-    } catch (err) {
-      setError('Verification failed. Please try again.');
+    } catch (err: any) {
+      // Display the specific error from backend (e.g., "You are not approved user")
+      setError(err.message || 'Verification failed. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -67,16 +77,21 @@ export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
         text: text
       });
       onSuccess();
-      setStep('verify'); // Reset or close
+      if (!preVerifiedStudent) {
+        setStep('verify'); // Reset if not pre-verified
+        setMobile('');
+        setSscYear('');
+      }
       setText('');
-      setMobile('');
-      setTicketId('');
     } catch (err) {
       setError('Failed to share memory.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Years generation for dropdown
+  const years = Array.from({ length: 97 }, (_, i) => 2026 - i);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-indigo-100 overflow-hidden">
@@ -90,11 +105,12 @@ export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
       <div className="p-6">
         {step === 'verify' ? (
           <form onSubmit={handleVerify} className="space-y-4">
-            <p className="text-sm text-slate-600">Verify your approved ticket to post on the wall.</p>
+            <p className="text-sm text-slate-600">Only approved alumni can share memories. Verify your details.</p>
             <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Mobile Number</label>
               <input 
-                type="text" 
-                placeholder="Mobile Number"
+                type="tel" 
+                placeholder="01XXXXXXXXX"
                 value={mobile}
                 onChange={e => setMobile(e.target.value)}
                 className="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -102,22 +118,36 @@ export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
               />
             </div>
             <div>
-              <input 
-                type="text" 
-                placeholder="Ticket ID (e.g., DHS-1234)"
-                value={ticketId}
-                onChange={e => setTicketId(e.target.value)}
-                className="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase"
-                required
-              />
+              <label className="block text-xs font-bold text-slate-500 mb-1">SSC Batch Year</label>
+              <div className="relative">
+                 <select 
+                    value={sscYear}
+                    onChange={e => setSscYear(e.target.value)}
+                    className="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white"
+                    required
+                 >
+                    <option value="">Select Year</option>
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                 </select>
+                 <Calendar className="w-4 h-4 absolute right-3 top-3.5 text-slate-400 pointer-events-none" />
+              </div>
             </div>
-            {error && <p className="text-xs text-red-500 flex items-center"><AlertCircle className="w-3 h-3 mr-1"/> {error}</p>}
+            
+            {error && (
+              <div className="bg-red-50 p-3 rounded-lg flex items-start">
+                 <AlertCircle className="w-4 h-4 text-red-500 mr-2 mt-0.5 shrink-0"/> 
+                 <p className="text-xs text-red-600 font-medium">{error}</p>
+              </div>
+            )}
+            
             <button 
               type="submit" 
               disabled={isVerifying}
               className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors flex justify-center items-center"
             >
-              {isVerifying ? 'Checking...' : <><Lock className="w-4 h-4 mr-2" /> Verify & Write</>}
+              {isVerifying ? 'Checking...' : <><Lock className="w-4 h-4 mr-2" /> Verify & Continue</>}
             </button>
           </form>
         ) : (
@@ -128,7 +158,7 @@ export const ShareMemory: React.FC<ShareMemoryProps> = ({ onSuccess }) => {
                 value={text}
                 onChange={e => setText(e.target.value)}
                 className="w-full p-3 border rounded-lg text-sm h-24 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
-                placeholder="Write something about your school days..."
+                placeholder={preVerifiedStudent ? `What's on your mind, ${preVerifiedStudent.fullName}?` : "Write something about your school days..."}
               />
             </div>
             

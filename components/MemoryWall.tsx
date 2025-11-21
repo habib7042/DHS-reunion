@@ -5,7 +5,11 @@ import { memoryService } from '../services/api';
 import { Quote, Calendar } from 'lucide-react';
 import { ShareMemory } from './ShareMemory';
 
-export const MemoryWall: React.FC = () => {
+interface MemoryWallProps {
+  preVerifiedStudent?: { fullName: string; sscYear: number };
+}
+
+export const MemoryWall: React.FC<MemoryWallProps> = ({ preVerifiedStudent }) => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [showForm, setShowForm] = useState(false);
 
@@ -16,7 +20,11 @@ export const MemoryWall: React.FC = () => {
 
   useEffect(() => {
     loadMemories();
-  }, []);
+    if (preVerifiedStudent) {
+      // Optionally auto-open form if user is verified contextually, 
+      // but keeping it closed initially is cleaner UI, user can click "Share"
+    }
+  }, [preVerifiedStudent]);
 
   return (
     <div className="max-w-6xl mx-auto py-16 px-4 animate-fade-in">
@@ -35,7 +43,10 @@ export const MemoryWall: React.FC = () => {
 
       {showForm && (
         <div className="max-w-md mx-auto mb-12 animate-fade-in-down">
-          <ShareMemory onSuccess={() => { setShowForm(false); loadMemories(); }} />
+          <ShareMemory 
+            onSuccess={() => { setShowForm(false); loadMemories(); }} 
+            preVerifiedStudent={preVerifiedStudent}
+          />
         </div>
       )}
 

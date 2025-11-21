@@ -6,12 +6,12 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { MemoryWall } from './MemoryWall';
 
 interface IDCardGeneratorProps {
   student: StudentData;
   ticket: TicketData;
   logo: string;
-  // onLogoChange prop removed as logo is now fixed
 }
 
 export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, logo }) => {
@@ -79,7 +79,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       const imgProps = pdf.getImageProperties(imgData);
-      const imgWidth = 80; // Physical width in mm (approx 3 inches)
+      const imgWidth = 80; // Physical width in mm
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       
       const x = (pdfWidth - imgWidth) / 2;
@@ -205,13 +205,13 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         </div>
       </div>
 
-      {/* The Card Container - Responsive Size (Not fixed height) */}
+      {/* The Card Container - Fluid Ratio (Portrait) */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group">
           <div 
             id="id-card" 
             ref={cardRef}
-            className="w-full max-w-[320px] min-h-[500px] h-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col"
+            className="w-full max-w-sm min-h-[500px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 print:shadow-none print:border print:border-slate-300 relative flex flex-col aspect-[3/5]"
           >
             
             {/* Decorative holographic overlay */}
@@ -242,7 +242,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
             </div>
 
-            {/* Content - Auto Height */}
+            {/* Content - Height automatically fills the container */}
             <div className="p-3 flex-grow flex flex-col relative bg-white">
               {/* Badge */}
               <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-school-secondary text-white text-[8px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md border-2 border-white z-20 whitespace-nowrap">
@@ -286,7 +286,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
 
               {/* Details Grid - Compact spacing */}
-              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-6 mt-4">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs bg-slate-50 rounded-lg p-3 border border-slate-100 mb-4 mt-3 flex-grow">
                 <div>
                   <p className="text-[8px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">SSC Year</p>
                   <p className="font-bold text-slate-800 text-sm">{student.sscYear}</p>
@@ -306,9 +306,9 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               </div>
 
               {/* QR Code - Pushed to bottom */}
-              <div className="mt-auto flex flex-col items-center justify-center pb-6">
+              <div className="mt-auto flex flex-col items-center justify-center pb-4">
                 <div className="bg-white p-2 rounded-md border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={80} level="H" />
+                  <QRCodeSVG value={JSON.stringify({ id: ticket.ticketId, name: student.fullName, year: student.sscYear })} size={70} level="H" />
                 </div>
                 <p className="text-center text-[10px] text-slate-400 mt-2 font-mono tracking-wide">Scan for Entry</p>
               </div>
@@ -380,6 +380,11 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             )}
           </div>
         </div>
+      </div>
+
+      {/* Memory Wall Integration */}
+      <div className="w-full mt-8 no-print border-t border-slate-200 pt-8">
+         <MemoryWall preVerifiedStudent={student} />
       </div>
     </div>
   );
