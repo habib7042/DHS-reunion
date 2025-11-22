@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<AppView>('home');
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentDetails | null>(null);
   
   // State for Registrations
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -134,6 +135,7 @@ const App: React.FC = () => {
   const handleFoundRegistration = (reg: Registration) => {
     setStudentData(reg.student);
     setTicketData(reg.ticket);
+    setPaymentData(reg.payment); // Capture payment data
     setView('id-card');
   };
 
@@ -148,6 +150,7 @@ const App: React.FC = () => {
     if (targetView === 'home' || targetView === 'check-status') {
       setStudentData(null);
       setTicketData(null);
+      setPaymentData(null);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -423,6 +426,7 @@ const App: React.FC = () => {
           <IDCardGenerator 
             student={studentData} 
             ticket={ticketData} 
+            payment={paymentData}
             logo={schoolLogo}
           />
         )}

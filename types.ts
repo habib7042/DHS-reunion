@@ -10,11 +10,14 @@ export interface StudentData {
   isVolunteer: boolean;
 }
 
+export type TShirtSize = 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'XXXL';
+
 export interface TicketData {
   type: 'single' | 'couple' | 'family';
   price: number;
   guests: number;
   ticketId: string;
+  tShirtSizes: TShirtSize[];
 }
 
 export type PaymentMethod = 'bkash' | 'nagad' | 'rocket' | 'bank' | 'cash';

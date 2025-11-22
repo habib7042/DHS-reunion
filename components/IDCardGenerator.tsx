@@ -1,22 +1,24 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { StudentData, TicketData, NostalgiaContent } from '../types';
+import { StudentData, TicketData, NostalgiaContent, PaymentDetails } from '../types';
 import { generateNostalgiaData } from '../services/geminiService';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader } from 'lucide-react';
+import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 interface IDCardGeneratorProps {
   student: StudentData;
   ticket: TicketData;
+  payment?: PaymentDetails | null; // Added payment info for invoice
   logo: string;
 }
 
-export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, logo }) => {
+export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, payment, logo }) => {
   const [nostalgia, setNostalgia] = useState<NostalgiaContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,6 +119,111 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     }
   };
 
+  const handleDownloadInvoice = async () => {
+    try {
+      setGeneratingInvoice(true);
+      
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPos = 20;
+
+      // --- HEADER ---
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 58, 138); // Blue 900
+      doc.text("Dighali High School Reunion 2026", pageWidth / 2, yPos, { align: "center" });
+      yPos += 10;
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Payment Invoice / Registration Receipt", pageWidth / 2, yPos, { align: "center" });
+      yPos += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+
+      // --- STUDENT DETAILS ---
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Student Information", margin, yPos);
+      yPos += 8;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Name: ${student.fullName}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Batch: SSC ${student.sscYear}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Mobile: ${student.mobile}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Occupation: ${student.occupation}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Address: ${student.presentAddress}`, margin, yPos);
+      yPos += 10;
+
+      // --- TICKET DETAILS ---
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Ticket Details", margin, yPos);
+      yPos += 8;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Ticket ID: ${ticket.ticketId}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Type: ${ticket.type.toUpperCase()} Pass`, margin, yPos);
+      yPos += 6;
+      doc.text(`Guests: ${ticket.guests} Person(s)`, margin, yPos);
+      yPos += 6;
+      
+      if (ticket.tShirtSizes && ticket.tShirtSizes.length > 0) {
+        const sizesStr = ticket.tShirtSizes.join(", ");
+        doc.text(`T-Shirt Sizes: ${sizesStr}`, margin, yPos);
+        yPos += 6;
+      }
+      yPos += 4;
+
+      // --- PAYMENT DETAILS ---
+      if (payment) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("Payment Information", margin, yPos);
+        yPos += 8;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(`Method: ${payment.method.toUpperCase()}`, margin, yPos);
+        yPos += 6;
+        doc.text(`Transaction ID: ${payment.transactionId || 'N/A'}`, margin, yPos);
+        yPos += 6;
+        doc.text(`Sender Number: ${payment.senderNumber || 'N/A'}`, margin, yPos);
+        yPos += 6;
+        doc.text(`Amount Paid: BDT ${payment.total}`, margin, yPos);
+        yPos += 6;
+        doc.text(`Date: ${new Date(payment.timestamp).toLocaleString()}`, margin, yPos);
+      }
+
+      yPos += 20;
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text("This is a computer-generated receipt.", pageWidth / 2, yPos, { align: "center" });
+      
+      doc.save(`DHS_Invoice_${student.sscYear}_${ticket.ticketId}.pdf`);
+
+    } catch (error) {
+      console.error("Invoice generation failed", error);
+      alert("Failed to generate invoice.");
+    } finally {
+      setGeneratingInvoice(false);
+    }
+  };
+
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -197,6 +304,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
           >
             <Printer className="w-4 h-4 mr-2" /> Print Badge
           </button>
+          
           <button 
              onClick={handleDownloadPDF}
              disabled={downloading}
@@ -208,6 +316,19 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               <Download className="w-4 h-4 mr-2" />
             )}
             {downloading ? 'Generating...' : 'Save as PDF'}
+          </button>
+
+          <button 
+             onClick={handleDownloadInvoice}
+             disabled={generatingInvoice}
+             className={`flex items-center px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-all font-medium shadow-sm hover:shadow-md ${generatingInvoice ? 'opacity-75 cursor-wait' : ''}`}
+          >
+             {generatingInvoice ? (
+               <Loader className="w-4 h-4 mr-2 animate-spin" />
+             ) : (
+               <FileText className="w-4 h-4 mr-2" />
+             )}
+             {generatingInvoice ? 'Creating...' : 'Download Invoice'}
           </button>
         </div>
       </div>
