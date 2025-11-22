@@ -57,27 +57,23 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     try {
       setDownloading(true);
       
-      // 1. Scroll to top to ensure element is in view/renderable (helps some browsers)
+      // 1. Scroll to top to ensure element is in view/renderable
       window.scrollTo(0, 0);
 
-      // 2. Small delay to ensure DOM is stable
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // 2. Wait for images/fonts to settle
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      // 3. Capture with html2canvas
+      // 3. Capture with Standard Settings (JPEG to fix blank issue)
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Good balance of quality vs file size
-        useCORS: true, // Needed for external images
-        backgroundColor: '#ffffff', // Force white background to avoid transparency issues
+        scale: 2, // Standard High Quality (not Ultra HD)
+        useCORS: true, // Critical for images
+        backgroundColor: '#ffffff', // Force white background
         logging: false,
-        allowTaint: true,
-        ignoreElements: (element) => {
-          if (!element || !element.classList) return false;
-          return element.classList.contains('no-print');
-        }
+        // Removed ignoreElements to prevent accidental content hiding
       });
 
-      // 4. Generate PDF
-      const imgData = canvas.toDataURL('image/png'); // PNG is safer than JPEG for text clarity
+      // 4. Generate PDF using JPEG (Smaller size, no transparency bugs)
+      const imgData = canvas.toDataURL('image/jpeg', 0.95); 
       
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -86,11 +82,10 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
       
       // Calculate dimensions to fit on A4 while maintaining aspect ratio
       const canvasRatio = canvas.height / canvas.width;
-      const imgWidth = 100; // 100mm width (approx 378px)
+      const imgWidth = 120; // 120mm width
       const imgHeight = imgWidth * canvasRatio;
       
       const x = (pdfWidth - imgWidth) / 2;
@@ -103,7 +98,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, 15, { align: "center" });
       
       // Add the card image
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
       
       // Add footer instructions
       pdf.setFont("helvetica", "normal");
@@ -116,7 +111,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Could not generate PDF automatically. Please use the 'Print Badge' button and select 'Save as PDF' as the destination.");
+      alert("Could not generate PDF. Please try the 'Print Badge' button instead.");
     } finally {
       setDownloading(false);
     }
