@@ -163,3 +163,25 @@ export const memoryService = {
     }
   }
 };
+
+export const liveChatService = {
+  getMessages: async () => {
+    const response = await fetch(`${API_URL}/live-chat`);
+    if (!response.ok) return [];
+    return await response.json();
+  },
+
+  sendMessage: async (senderName: string, sscYear: number, message: string) => {
+    const response = await fetch(`${API_URL}/live-chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderName, sscYear, message })
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to send");
+    }
+    return data;
+  }
+};

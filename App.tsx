@@ -11,6 +11,7 @@ import { StatusCheck } from './components/StatusCheck';
 import { AboutUs } from './components/AboutUs';
 import { AiAssistant } from './components/AiAssistant';
 import { InstallPWA } from './components/InstallPWA';
+import { LiveChat } from './components/LiveChat';
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
 import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock, Timer, Download, Award, X, Bell } from 'lucide-react';
 import { registrationService } from './services/api';
@@ -442,6 +443,7 @@ const App: React.FC = () => {
       
       <InstallPWA />
       <AiAssistant />
+      <LiveChat />
       
       <footer className="bg-[#0a192f] text-slate-400 py-16 mt-auto no-print border-t border-slate-800 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>

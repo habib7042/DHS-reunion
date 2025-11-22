@@ -47,8 +47,8 @@ const connectToDatabase = async () => {
 
 // Ensure DB is connected for every request
 app.use(async (req, res, next) => {
-  // Skip DB connection for AI routes to speed them up
-  if (req.path.startsWith('/api/chat') || req.path.startsWith('/api/nostalgia') || req.path.startsWith('/api/memories/refine')) {
+  // Skip DB connection for AI routes to speed them up (except chat which needs both)
+  if (req.path.startsWith('/api/nostalgia') || req.path.startsWith('/api/memories/refine')) {
     return next();
   }
 
@@ -194,6 +194,15 @@ const MemorySchema = new mongoose.Schema({
 
 const Memory = mongoose.models.Memory || mongoose.model('Memory', MemorySchema);
 
+const ChatSchema = new mongoose.Schema({
+  senderName: String,
+  sscYear: Number,
+  message: String,
+  timestamp: { type: Date, default: Date.now }
+});
+
+const Chat = mongoose.models.Chat || mongoose.model('Chat', ChatSchema);
+
 
 // --- CRUD ROUTES ---
 
@@ -304,6 +313,53 @@ app.post('/api/memories/verify', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// --- LIVE CHAT ROUTES ---
+
+app.get('/api/live-chat', async (req, res) => {
+  try {
+    // Return last 50 messages
+    const messages = await Chat.find().sort({ timestamp: 1 }).limit(50);
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/live-chat', async (req, res) => {
+  const { senderName, sscYear, message } = req.body;
+
+  if (!ai) return res.status(503).json({ error: "Chat unavailable" });
+
+  try {
+    // 1. AI MODERATION
+    const moderationCheck = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Analyze the following message for hate speech, profanity, severe toxicity, or harassment in a public school reunion chat. 
+      Message: "${message}"
+      Return JSON only: { "isSafe": boolean, "reason": string }`,
+      config: { responseMimeType: "application/json" }
+    });
+
+    const checkResult = JSON.parse(moderationCheck.text);
+
+    if (!checkResult.isSafe) {
+      return res.status(400).json({ 
+        error: "Message blocked by AI Moderation", 
+        reason: checkResult.reason 
+      });
+    }
+
+    // 2. SAVE TO DB IF SAFE
+    const newChat = new Chat({ senderName, sscYear, message });
+    await newChat.save();
+    res.status(201).json(newChat);
+
+  } catch (err) {
+    console.error("Chat Error:", err);
+    res.status(500).json({ error: "Failed to process message" });
   }
 });
 
