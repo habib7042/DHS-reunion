@@ -165,7 +165,10 @@ export const LiveChat: React.FC = () => {
                       <div className={`max-w-[85%] p-2 rounded-xl text-xs shadow-sm ${
                         isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 rounded-tl-none'
                       }`}>
-                        {!isMe && <p className="font-bold text-[10px] text-amber-600 mb-0.5">{msg.senderName} <span className="text-slate-400">({msg.sscYear})</span></p>}
+                        {/* Sender Name Header - Now Visible for Everyone */}
+                        <p className={`font-bold text-[10px] mb-0.5 ${isMe ? 'text-blue-200' : 'text-amber-600'}`}>
+                          {msg.senderName} <span className={isMe ? 'text-blue-300' : 'text-slate-400'}>({msg.sscYear})</span>
+                        </p>
                         <p>{msg.message}</p>
                       </div>
                       <span className="text-[9px] text-slate-400 mt-0.5">
