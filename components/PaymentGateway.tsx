@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { TicketData, PaymentMethod, PaymentDetails } from '../types';
 import { CreditCard, Banknote, ArrowRight, Smartphone, Building, Wallet, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PaymentGatewayProps {
   ticket: TicketData;
@@ -9,6 +11,7 @@ interface PaymentGatewayProps {
 }
 
 export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfirm, onBack }) => {
+  const { t } = useLanguage();
   const [method, setMethod] = useState<PaymentMethod>('bkash');
   const [senderNumber, setSenderNumber] = useState('');
   const [transactionId, setTransactionId] = useState('');
@@ -65,18 +68,18 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
       case 'nagad': return 'Nagad';
       case 'rocket': return 'Rocket';
       case 'bank': return 'Bank Transfer';
-      case 'cash': return 'Cash Payment';
+      case 'cash': return 'Cash';
       default: return m;
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto my-8 px-4 animate-fade-in">
+    <div className="max-w-4xl mx-auto my-8 px-4 animate-fade-in font-sans">
       <button 
         onClick={onBack}
         className="mb-6 text-slate-500 hover:text-school-primary flex items-center text-sm font-medium transition-colors"
       >
-        <ArrowRight className="w-4 h-4 mr-1 rotate-180" /> Back to Ticket Selection
+        <ArrowRight className="w-4 h-4 mr-1 rotate-180" /> {t('back_ticket')}
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -84,32 +87,32 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
         <div className="md:col-span-1 order-2 md:order-1">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 sticky top-24">
             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
-              <Wallet className="w-5 h-5 mr-2 text-school-secondary" /> Order Summary
+              <Wallet className="w-5 h-5 mr-2 text-school-secondary" /> {t('order_summary')}
             </h3>
             
             <div className="space-y-4 text-sm">
               <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-                <span className="text-slate-500">Ticket Type</span>
-                <span className="font-bold text-school-primary capitalize">{ticket.type} Pass</span>
+                <span className="text-slate-500">{t('ticket_type')}</span>
+                <span className="font-bold text-school-primary capitalize">{ticket.type === 'single' ? t('single_pass') : ticket.type === 'couple' ? t('couple_pass') : t('family_pass')}</span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-                <span className="text-slate-500">Guests</span>
-                <span className="font-bold text-slate-800">{ticket.guests} Person(s)</span>
+                <span className="text-slate-500">{t('guests')}</span>
+                <span className="font-bold text-slate-800">{ticket.guests}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500">Subtotal</span>
+                <span className="text-slate-500">{t('subtotal')}</span>
                 <span className="font-bold text-slate-800">৳ {ticket.price}</span>
               </div>
               
               {fee > 0 && (
                 <div className="flex justify-between items-center text-amber-600 bg-amber-50 p-2 rounded-md">
-                  <span className="flex items-center"><AlertCircle className="w-3 h-3 mr-1" /> Gateway Fee (1.8%)</span>
+                  <span className="flex items-center"><AlertCircle className="w-3 h-3 mr-1" /> {t('gateway_fee')} (1.8%)</span>
                   <span className="font-bold">+ ৳ {fee}</span>
                 </div>
               )}
               
               <div className="pt-4 border-t-2 border-dashed border-slate-200 flex justify-between items-center">
-                <span className="text-base font-bold text-slate-800">Total Payable</span>
+                <span className="text-base font-bold text-slate-800">{t('total_payable')}</span>
                 <span className="text-2xl font-bold text-school-primary">৳ {total}</span>
               </div>
             </div>
@@ -120,8 +123,8 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
         <div className="md:col-span-2 order-1 md:order-2">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
             <div className="bg-slate-50 px-8 py-6 border-b border-slate-200">
-              <h2 className="text-2xl font-serif font-bold text-slate-800">Select Payment Method</h2>
-              <p className="text-slate-500 text-sm mt-1">Secure payment gateway for Reunion 2026</p>
+              <h2 className="text-2xl font-serif font-bold text-slate-800">{t('select_method')}</h2>
+              <p className="text-slate-500 text-sm mt-1">{t('secure_gateway')}</p>
             </div>
 
             <div className="p-8">
@@ -148,27 +151,26 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
               {/* Instructions */}
               <div className="bg-blue-50 rounded-xl p-4 mb-8 border border-blue-100">
                 <h4 className="font-bold text-blue-900 text-sm mb-2 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-2" /> Payment Instructions
+                  <AlertCircle className="w-4 h-4 mr-2" /> {t('payment_instruction')}
                 </h4>
                 {method === 'cash' ? (
                   <p className="text-sm text-blue-800">
-                    Please visit the <strong>Dighali High School Office</strong> or contact a volunteer to pay in cash. 
-                    Your registration will be pending until a volunteer verifies your cash payment.
+                    {t('cash_instruction')}
                   </p>
                 ) : method === 'bank' ? (
                   <div className="text-sm text-blue-800 space-y-1">
                     <p>Bank: <strong>Sonali Bank PLC</strong></p>
-                    <p>Account Name: <strong>Dighali High School Reunion Fund</strong></p>
-                    <p>Account No: <strong>3400882910</strong></p>
+                    <p>{t('bank_instruction')}: <strong>Dighali High School Reunion Fund</strong></p>
+                    <p>AC No: <strong>3400882910</strong></p>
                     <p>Branch: <strong>Dighali Branch</strong></p>
                   </div>
                 ) : (
                   <div className="text-sm text-blue-800">
-                    <p className="mb-1">1. Go to your {getMethodLabel(method)} App.</p>
-                    <p className="mb-1">2. Select <strong>"Send Money"</strong>.</p>
-                    <p className="mb-1">3. Enter Number: <strong className="font-mono text-lg select-all">01700000000</strong></p>
-                    <p className="mb-1">4. Amount: <strong>৳ {total}</strong> (Reference: Your Name)</p>
-                    <p>5. Enter the TrxID below.</p>
+                    <p className="mb-1">1. {t('mfs_step_1')}</p>
+                    <p className="mb-1">2. <strong>{t('mfs_step_send_money')}</strong></p>
+                    <p className="mb-1">3. {t('mfs_step_number')}: <strong className="font-mono text-lg select-all">01700000000</strong></p>
+                    <p className="mb-1">4. Amount: <strong>৳ {total}</strong> ({t('mfs_step_ref')})</p>
+                    <p>5. Enter TrxID below.</p>
                   </div>
                 )}
               </div>
@@ -179,7 +181,7 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
                   <>
                     <div className="group">
                       <label className="block">
-                        <span className="text-slate-600 text-sm font-bold mb-1.5 block">Sender Number / Account No</span>
+                        <span className="text-slate-600 text-sm font-bold mb-1.5 block">{t('sender_number')}</span>
                         <input 
                           type="text" 
                           required
@@ -193,7 +195,7 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
 
                     <div className="group">
                       <label className="block">
-                        <span className="text-slate-600 text-sm font-bold mb-1.5 block">Transaction ID (TrxID)</span>
+                        <span className="text-slate-600 text-sm font-bold mb-1.5 block">{t('trx_id')}</span>
                         <input 
                           type="text" 
                           required
@@ -216,11 +218,11 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({ ticket, onConfir
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader className="animate-spin w-5 h-5 mr-2" /> Submitting...
+                      <Loader className="animate-spin w-5 h-5 mr-2" /> {t('processing')}
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-5 h-5 mr-2" /> Submit for Verification
+                      <CheckCircle className="w-5 h-5 mr-2" /> {t('btn_submit_verify')}
                     </>
                   )}
                 </button>

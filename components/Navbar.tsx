@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
-import { Menu, X, Home, Calendar, Search, BookOpen } from 'lucide-react';
+import { Menu, X, Home, Calendar, Search, BookOpen, Languages } from 'lucide-react';
 import { AppView } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NavbarProps {
   onNavigate: (view: AppView) => void;
@@ -10,6 +12,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t, language, toggleLanguage } = useLanguage();
 
   const handleNav = (view: AppView) => {
     onNavigate(view);
@@ -19,7 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
   const isActive = (view: AppView) => currentView === view ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white';
 
   return (
-    <nav className="bg-school-primary text-white shadow-lg no-print sticky top-0 z-50">
+    <nav className="bg-school-primary text-white shadow-lg no-print sticky top-0 z-50 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -32,8 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
               />
             </div>
             <div>
-              <span className="font-serif text-xl font-bold block leading-none tracking-tight">Dighali High School</span>
-              <span className="text-[10px] text-blue-200 tracking-[0.2em] uppercase font-medium">Reunion 2026</span>
+              <span className="font-serif text-xl font-bold block leading-none tracking-tight">{t('school_name')}</span>
+              <span className="text-[10px] text-blue-200 tracking-[0.1em] uppercase font-medium">{t('reunion_title_short')}</span>
             </div>
           </div>
 
@@ -44,37 +47,52 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
                 onClick={() => handleNav('home')} 
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('home')}`}
               >
-                <Home className="w-4 h-4 mr-2" /> Home
+                <Home className="w-4 h-4 mr-2" /> {t('nav_home')}
               </button>
               <button 
                 onClick={() => handleNav('about')} 
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('about')}`}
               >
-                <BookOpen className="w-4 h-4 mr-2" /> History
+                <BookOpen className="w-4 h-4 mr-2" /> {t('nav_history')}
               </button>
               <button 
                 onClick={() => handleNav('schedule')} 
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('schedule')}`}
               >
-                <Calendar className="w-4 h-4 mr-2" /> Schedule
+                <Calendar className="w-4 h-4 mr-2" /> {t('nav_schedule')}
               </button>
               <button 
                 onClick={() => handleNav('check-status')} 
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${isActive('check-status')}`}
               >
-                <Search className="w-4 h-4 mr-2" /> Download Card
+                <Search className="w-4 h-4 mr-2" /> {t('nav_download')}
               </button>
               <button 
                 onClick={() => handleNav('register')} 
                 className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-200 ${currentView === 'register' ? 'bg-school-accent text-school-primary shadow-lg' : 'bg-white/10 hover:bg-white/20 text-white'}`}
               >
-                Register Now
+                {t('nav_register')}
+              </button>
+              
+              {/* Language Toggle */}
+              <button 
+                onClick={toggleLanguage}
+                className="ml-2 px-3 py-1 rounded-full bg-blue-800 hover:bg-blue-700 text-xs font-bold border border-blue-600 flex items-center transition-all"
+              >
+                <Languages className="w-3 h-3 mr-1" />
+                {language === 'bn' ? 'ENGLISH' : 'বাংলা'}
               </button>
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="-mr-2 flex md:hidden">
+          {/* Mobile Menu Button & Language */}
+          <div className="-mr-2 flex md:hidden items-center">
+            <button 
+              onClick={toggleLanguage}
+              className="px-2 py-1 mr-2 rounded bg-blue-800 text-xs font-bold"
+            >
+              {language === 'bn' ? 'EN' : 'BN'}
+            </button>
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-blue-200 hover:text-white hover:bg-blue-800 focus:outline-none transition-colors"
@@ -93,31 +111,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, logo })
               onClick={() => handleNav('home')}
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'home' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
-              Home
+              {t('nav_home')}
             </button>
             <button 
               onClick={() => handleNav('about')}
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'about' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
-              School History
+              {t('nav_history')}
             </button>
             <button 
               onClick={() => handleNav('schedule')}
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'schedule' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
-              Event Schedule
+              {t('nav_schedule')}
             </button>
             <button 
               onClick={() => handleNav('check-status')}
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'check-status' ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
-              Download Entry Card
+              {t('nav_download')}
             </button>
             <button 
               onClick={() => handleNav('register')}
               className={`block w-full text-left px-3 py-3 rounded-md text-base font-medium ${currentView === 'register' ? 'bg-school-accent text-school-primary' : 'text-blue-100 hover:bg-blue-800 hover:text-white'}`}
             >
-              Register Now
+              {t('nav_register')}
             </button>
           </div>
         </div>

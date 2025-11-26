@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, X, User, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { liveChatService } from '../services/api';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ChatMessage {
   _id: string;
@@ -12,14 +13,13 @@ interface ChatMessage {
 }
 
 export const LiveChat: React.FC = () => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   
-  // Join Form State
   const [name, setName] = useState('');
   const [batch, setBatch] = useState('');
   
-  // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +28,6 @@ export const LiveChat: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check session storage for previous login
     const savedUser = sessionStorage.getItem('dhs_chat_user');
     if (savedUser) {
       const user = JSON.parse(savedUser);
@@ -41,9 +40,7 @@ export const LiveChat: React.FC = () => {
   useEffect(() => {
     let interval: any;
     if (isOpen && hasJoined) {
-      // Initial fetch
       fetchMessages();
-      // Poll every 3 seconds
       interval = setInterval(fetchMessages, 3000);
     }
     return () => clearInterval(interval);
@@ -60,10 +57,9 @@ export const LiveChat: React.FC = () => {
   const fetchMessages = async () => {
     try {
       const data = await liveChatService.getMessages();
-      // Only update if different length to avoid jitter (simple check)
       setMessages(prev => {
         if (prev.length !== data.length) return data;
-        return prev; // Assume same if length same (simplification)
+        return prev;
       });
     } catch (e) {
       console.error("Chat error", e);
@@ -88,9 +84,9 @@ export const LiveChat: React.FC = () => {
     try {
       await liveChatService.sendMessage(name, Number(batch), inputText);
       setInputText('');
-      fetchMessages(); // Refresh immediately
+      fetchMessages();
     } catch (error: any) {
-      setWarning(error.message); // Will show AI moderation warning
+      setWarning(error.message);
       setTimeout(() => setWarning(null), 5000);
     } finally {
       setIsLoading(false);
@@ -108,9 +104,9 @@ export const LiveChat: React.FC = () => {
             <div className="flex items-center">
               <MessageSquare className="w-5 h-5 mr-2 text-amber-400" />
               <div>
-                <h3 className="font-bold text-sm">Live Alumni Chat</h3>
+                <h3 className="font-bold text-sm">{t('live_chat')}</h3>
                 <p className="text-[10px] text-slate-400 flex items-center">
-                  <ShieldAlert className="w-3 h-3 mr-1" /> AI Moderated
+                  <ShieldAlert className="w-3 h-3 mr-1" /> {t('ai_moderated')}
                 </p>
               </div>
             </div>
@@ -122,35 +118,35 @@ export const LiveChat: React.FC = () => {
           {/* Content */}
           {!hasJoined ? (
             <div className="p-6 flex flex-col justify-center h-full bg-slate-50">
-              <h4 className="text-center font-bold text-slate-800 mb-4">Join the Conversation</h4>
+              <h4 className="text-center font-bold text-slate-800 mb-4">{t('join_chat')}</h4>
               <form onSubmit={handleJoin} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-500">Your Name</label>
+                  <label className="text-xs font-bold text-slate-500">{t('your_name')}</label>
                   <input 
                     type="text" 
                     required
                     className="w-full p-2 border rounded text-sm"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Ex: Rahim"
+                    placeholder={t('name_placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500">Batch Year</label>
+                  <label className="text-xs font-bold text-slate-500">{t('batch_year')}</label>
                   <select 
                     required
                     className="w-full p-2 border rounded text-sm bg-white"
                     value={batch}
                     onChange={e => setBatch(e.target.value)}
                   >
-                    <option value="">Select</option>
-                    {Array.from({ length: 50 }, (_, i) => 2026 - i).map(y => (
+                    <option value="">{t('select')}</option>
+                    {Array.from({ length: 97 }, (_, i) => 2026 - i).map(y => (
                       <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
                 </div>
                 <button className="w-full bg-school-primary text-white py-2 rounded font-bold text-sm hover:bg-blue-800">
-                  Enter Chat
+                  {t('enter_chat')}
                 </button>
               </form>
             </div>
@@ -165,7 +161,6 @@ export const LiveChat: React.FC = () => {
                       <div className={`max-w-[85%] p-2 rounded-xl text-xs shadow-sm ${
                         isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 rounded-tl-none'
                       }`}>
-                        {/* Sender Name Header - Now Visible for Everyone */}
                         <p className={`font-bold text-[10px] mb-0.5 ${isMe ? 'text-blue-200' : 'text-amber-600'}`}>
                           {msg.senderName} <span className={isMe ? 'text-blue-300' : 'text-slate-400'}>({msg.sscYear})</span>
                         </p>
@@ -192,7 +187,7 @@ export const LiveChat: React.FC = () => {
               <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 flex gap-2">
                 <input 
                   className="flex-1 bg-slate-100 border-0 rounded-full px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Type a message..."
+                  placeholder={t('write_msg')}
                   value={inputText}
                   onChange={e => setInputText(e.target.value)}
                 />
@@ -216,7 +211,7 @@ export const LiveChat: React.FC = () => {
         >
           <MessageSquare className="w-5 h-5" />
           <span className="absolute left-14 bg-slate-900 text-white px-2 py-1 rounded text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-             Live Chat
+             {t('open_chat')}
           </span>
         </button>
       )}

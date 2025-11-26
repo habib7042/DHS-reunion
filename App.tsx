@@ -15,24 +15,24 @@ import { LiveChat } from './components/LiveChat';
 import { AppView, StudentData, TicketData, PaymentDetails, Registration } from './types';
 import { Calendar, ArrowRight, Users, Clock, CheckCircle, Lock, Timer, Download, Award, X, Bell } from 'lucide-react';
 import { registrationService } from './services/api';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
-const App: React.FC = () => {
+// Create a wrapper component for the main content to use the context
+const AppContent: React.FC = () => {
+  const { t, language } = useLanguage();
   const [view, setView] = useState<AppView>('home');
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentDetails | null>(null);
   
-  // State for Registrations
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Countdown Logic
   const REGISTRATION_START_DATE = new Date('2025-12-01T00:00:00');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
 
-  // Modal State
   const [showLockedModal, setShowLockedModal] = useState(false);
 
   useEffect(() => {
@@ -56,13 +56,10 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
   
-  // Custom "97" Logo - Base64 SVG
   const NEW_LOGO_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMWUzYThhIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmJiZjI0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZDk3NzA2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNDUiIGZpbGw9InVybCgjZzEpIiBzdHJva2U9InVybCgjZzIpIiBzdHJva2Utd2lkdGg9IjEwIi8+PHRleHQgeD0iMjU2IiB5PSIzNDAiIGZvbnQtZmFtaWx5PSJzZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMjQwIiBmaWxsPSJ1cmwoI2cyKSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgc3R5bGU9ImZpbHRlcjpkcm9wLXNoYWRvdyg0cHggNHB4IDAgcmdiYSgwLDAsMCwwLjUpKSI+OTc8L3RleHQ+PHBhdGggaWQ9ImMiIGQ9Ik0xNDAsMzgwIFEyNTYsNDUwIDM3MiwzODAiIGZpbGw9Im5vbmUiLz48dGV4dCBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMzUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iNSI+PHRleHRQYXRoIGhyZWY9IiNjIiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SRVVOSU9OPC90ZXh0UGF0aD48L3RleHQ+PHRleHQgeD0iMjU2IiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjOTNjNWZkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+RVNULiAxOTI5PC90ZXh0Pjwvc3ZnPg==';
 
-  // Assets with LocalStorage persistence
   const [schoolLogo, setSchoolLogo] = useState<string>(() => {
     const stored = localStorage.getItem('dhs_school_logo_97');
-    // Force update if it's missing
     if (!stored) {
       return NEW_LOGO_SVG;
     }
@@ -73,7 +70,6 @@ const App: React.FC = () => {
     localStorage.setItem('dhs_school_logo_97', schoolLogo);
   }, [schoolLogo]);
 
-  // Fetch data when view changes to Admin
   useEffect(() => {
     if (view === 'admin-dashboard' || view === 'check-status') {
       loadRegistrations();
@@ -135,12 +131,11 @@ const App: React.FC = () => {
   const handleFoundRegistration = (reg: Registration) => {
     setStudentData(reg.student);
     setTicketData(reg.ticket);
-    setPaymentData(reg.payment); // Capture payment data
+    setPaymentData(reg.payment);
     setView('id-card');
   };
 
   const navigate = (targetView: AppView) => {
-    // Intercept register click if registration is not open
     if (targetView === 'register' && !isRegistrationOpen) {
       setShowLockedModal(true);
       return;
@@ -156,14 +151,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-800 bg-slate-50 selection:bg-school-accent selection:text-school-primary">
+    <div className={`min-h-screen flex flex-col ${language === 'bn' ? 'font-sans' : 'font-sans'} text-slate-800 bg-slate-50 selection:bg-school-accent selection:text-school-primary`}>
       <Navbar onNavigate={navigate} currentView={view} logo={schoolLogo} />
 
       {/* Registration Locked Pop-up Modal */}
       {showLockedModal && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center relative overflow-hidden border-2 border-school-accent/20">
-             {/* Background Effect */}
              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-school-primary via-school-accent to-school-primary"></div>
              
              <button 
@@ -177,16 +171,16 @@ const App: React.FC = () => {
                <Lock className="w-10 h-10 text-school-primary" />
              </div>
 
-             <h3 className="text-2xl font-serif font-bold text-school-primary mb-2">Registration Locked</h3>
+             <h3 className="text-2xl font-serif font-bold text-school-primary mb-2">{t('btn_registration_closed')}</h3>
              <p className="text-slate-600 mb-6 leading-relaxed">
-               Online registration for the 97th Reunion is not available yet. Please wait for the official opening date.
+               {t('reg_closed_msg')}
              </p>
 
              <div className="bg-blue-50 rounded-xl p-4 mb-8 border border-blue-100">
-               <p className="text-xs text-blue-600 font-bold uppercase tracking-widest mb-1">Opens On</p>
+               <p className="text-xs text-blue-600 font-bold uppercase tracking-widest mb-1">{t('count_label')}</p>
                <div className="flex items-center justify-center text-lg font-bold text-school-primary">
                  <Calendar className="w-5 h-5 mr-2 text-school-accent" />
-                 December 01, 2025
+                 {t('count_date_text')}
                </div>
              </div>
 
@@ -194,7 +188,7 @@ const App: React.FC = () => {
                onClick={() => setShowLockedModal(false)}
                className="w-full py-3.5 bg-school-primary text-white font-bold rounded-xl hover:bg-blue-800 transition-all shadow-lg flex items-center justify-center gap-2"
              >
-               <Bell className="w-4 h-4" /> Got it, I'll come back
+               <Bell className="w-4 h-4" /> OK
              </button>
           </div>
         </div>
@@ -213,17 +207,16 @@ const App: React.FC = () => {
 
                <div className="relative z-10 container mx-auto px-4 text-center">
                   <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-1.5 rounded-full text-amber-400 font-bold text-xs uppercase tracking-[0.2em] mb-8 animate-fade-in-down border border-white/10">
-                     <Calendar className="w-3 h-3" /> 2 Days after Eid-ul-Fitr, 2026
+                     <Calendar className="w-3 h-3" /> {t('hero_date')}
                   </div>
                   
                   <h1 className="text-5xl md:text-8xl font-serif font-bold mb-6 leading-none tracking-tight drop-shadow-2xl animate-fade-in">
-                    97 Years of <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-amber-300">Excellence</span>
+                    {t('hero_title_1')} <br/>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-amber-300">{t('hero_title_2')}</span>
                   </h1>
 
                   <p className="max-w-2xl mx-auto text-lg text-blue-100/80 mb-10 leading-relaxed font-light animate-fade-in-up">
-                    Dighali High School Alumni Reunion (Est. 1929). <br/>
-                    A timeless celebration of heritage, friendship, and the future.
+                    {t('hero_subtitle')}
                   </p>
 
                   {isRegistrationOpen ? (
@@ -231,14 +224,14 @@ const App: React.FC = () => {
                       onClick={() => navigate('register')}
                       className="px-10 py-4 bg-amber-400 hover:bg-amber-300 text-school-primary font-bold rounded-full shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:shadow-[0_0_50px_rgba(251,191,36,0.5)] transition-all duration-300 transform hover:-translate-y-1 animate-fade-in-up flex items-center mx-auto"
                     >
-                      Register Now <ArrowRight className="ml-2 h-5 w-5" />
+                      {t('btn_register_now')} <ArrowRight className="ml-2 h-5 w-5" />
                     </button>
                   ) : (
                     <button 
                       onClick={() => setShowLockedModal(true)}
                       className="px-10 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full border border-white/20 transition-all duration-300 animate-fade-in-up flex items-center mx-auto backdrop-blur-sm"
                     >
-                      <Lock className="w-4 h-4 mr-2" /> Registration Locked
+                      <Lock className="w-4 h-4 mr-2" /> {t('btn_registration_closed')}
                     </button>
                   )}
                </div>
@@ -249,27 +242,36 @@ const App: React.FC = () => {
               <div className="bg-school-primary relative z-20">
                 <div className="container mx-auto px-4 py-12">
                   <div className="bg-blue-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
-                     {/* Background glow */}
                      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px]"></div>
 
                      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
                         <div className="text-center md:text-left">
                            <h2 className="text-amber-400 font-bold uppercase tracking-widest text-sm mb-2 flex items-center justify-center md:justify-start">
-                              <Timer className="w-4 h-4 mr-2" /> Registration Countdown
+                              <Timer className="w-4 h-4 mr-2" /> {t('count_label')}
                            </h2>
                            <p className="text-white text-2xl md:text-3xl font-serif font-bold">
-                              Mark your calendar: <br/>
-                              <span className="text-blue-200">December 01, 2025</span>
+                              {t('count_mark')} <br/>
+                              <span className="text-blue-200">{t('count_date_text')}</span>
                            </p>
                         </div>
 
                         <div className="flex gap-4 md:gap-8">
-                           {Object.entries(timeLeft).map(([unit, value]) => (
-                             <div key={unit} className="flex flex-col items-center bg-black/20 rounded-lg p-3 min-w-[70px] md:min-w-[90px] border border-white/5">
-                               <div className="text-3xl md:text-4xl font-bold text-white tabular-nums text-shadow-glow">{String(value).padStart(2, '0')}</div>
-                               <div className="text-[10px] text-blue-300 uppercase tracking-[0.2em] mt-1 opacity-80">{unit}</div>
-                             </div>
-                           ))}
+                           <div className="flex flex-col items-center bg-black/20 rounded-lg p-3 min-w-[70px] md:min-w-[90px] border border-white/5">
+                             <div className="text-3xl md:text-4xl font-bold text-white tabular-nums text-shadow-glow">{String(timeLeft.days).padStart(2, '0')}</div>
+                             <div className="text-[10px] text-blue-300 uppercase tracking-[0.2em] mt-1 opacity-80">{t('day')}</div>
+                           </div>
+                           <div className="flex flex-col items-center bg-black/20 rounded-lg p-3 min-w-[70px] md:min-w-[90px] border border-white/5">
+                             <div className="text-3xl md:text-4xl font-bold text-white tabular-nums text-shadow-glow">{String(timeLeft.hours).padStart(2, '0')}</div>
+                             <div className="text-[10px] text-blue-300 uppercase tracking-[0.2em] mt-1 opacity-80">{t('hour')}</div>
+                           </div>
+                           <div className="flex flex-col items-center bg-black/20 rounded-lg p-3 min-w-[70px] md:min-w-[90px] border border-white/5">
+                             <div className="text-3xl md:text-4xl font-bold text-white tabular-nums text-shadow-glow">{String(timeLeft.minutes).padStart(2, '0')}</div>
+                             <div className="text-[10px] text-blue-300 uppercase tracking-[0.2em] mt-1 opacity-80">{t('minute')}</div>
+                           </div>
+                           <div className="flex flex-col items-center bg-black/20 rounded-lg p-3 min-w-[70px] md:min-w-[90px] border border-white/5">
+                             <div className="text-3xl md:text-4xl font-bold text-white tabular-nums text-shadow-glow">{String(timeLeft.seconds).padStart(2, '0')}</div>
+                             <div className="text-[10px] text-blue-300 uppercase tracking-[0.2em] mt-1 opacity-80">{t('second')}</div>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -283,9 +285,9 @@ const App: React.FC = () => {
                   <div className="w-16 h-16 bg-blue-50 text-school-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                      <CheckCircle className="w-8 h-8" />
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-serif font-bold text-slate-800 mb-4">Already Registered?</h2>
+                  <h2 className="text-3xl md:text-4xl font-serif font-bold text-slate-800 mb-4">{t('already_reg_title')}</h2>
                   <p className="text-slate-600 text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-                     If you have already completed your registration and payment, you can check your approval status and download your digital entry badge here.
+                     {t('already_reg_desc')}
                   </p>
                   
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -293,14 +295,14 @@ const App: React.FC = () => {
                        onClick={() => navigate('check-status')}
                        className="px-8 py-3 bg-white border-2 border-school-primary text-school-primary font-bold rounded-full hover:bg-school-primary hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm hover:shadow-md"
                      >
-                       <Download className="w-5 h-5 mr-2" /> Download Entry Card
+                       <Download className="w-5 h-5 mr-2" /> {t('btn_download_entry')}
                      </button>
                      
                      <button 
                        onClick={() => navigate('schedule')}
                        className="px-8 py-3 bg-slate-100 text-slate-700 font-bold rounded-full hover:bg-slate-200 transition-all duration-300 flex items-center justify-center"
                      >
-                       <Calendar className="w-5 h-5 mr-2" /> View Schedule
+                       <Calendar className="w-5 h-5 mr-2" /> {t('btn_view_schedule')}
                      </button>
                   </div>
                </div>
@@ -310,8 +312,8 @@ const App: React.FC = () => {
             <div className="bg-slate-50 py-24">
                <div className="container mx-auto px-4">
                   <div className="text-center mb-16">
-                     <span className="text-school-secondary font-bold tracking-widest uppercase text-xs mb-2 block">Since 1929</span>
-                     <h2 className="text-3xl md:text-4xl font-serif font-bold text-slate-800">Our Legacy</h2>
+                     <span className="text-school-secondary font-bold tracking-widest uppercase text-xs mb-2 block">{t('est_label')}</span>
+                     <h2 className="text-3xl md:text-4xl font-serif font-bold text-slate-800">{t('our_heritage')}</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -321,7 +323,7 @@ const App: React.FC = () => {
                            <Clock className="w-7 h-7 text-school-primary" />
                         </div>
                         <div className="text-5xl font-bold text-slate-800 font-serif mb-2">1929</div>
-                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">Established</p>
+                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">{t('stat_est')}</p>
                      </div>
 
                      {/* Card 2 */}
@@ -330,7 +332,7 @@ const App: React.FC = () => {
                            <Users className="w-7 h-7 text-school-secondary" />
                         </div>
                         <div className="text-5xl font-bold text-slate-800 font-serif mb-2">600+</div>
-                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">Alumni Expected</p>
+                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">{t('stat_alumni')}</p>
                      </div>
 
                      {/* Card 3 */}
@@ -338,8 +340,8 @@ const App: React.FC = () => {
                         <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                            <Award className="w-7 h-7 text-school-primary" />
                         </div>
-                        <div className="text-5xl font-bold text-slate-800 font-serif mb-2">97th</div>
-                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">Anniversary</p>
+                        <div className="text-5xl font-bold text-slate-800 font-serif mb-2">{t('stat_97th')}</div>
+                        <p className="text-slate-500 font-medium uppercase tracking-widest text-sm">{t('stat_anni')}</p>
                      </div>
                   </div>
                </div>
@@ -358,8 +360,8 @@ const App: React.FC = () => {
         {view === 'register' && (
           <div className="bg-slate-50 py-10 px-4 animate-fade-in">
             <div className="max-w-3xl mx-auto text-center mb-8">
-               <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">Alumni Registration</h2>
-               <p className="text-slate-600 text-lg">Please provide your details to get your digital ID card.</p>
+               <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">{t('reg_title')}</h2>
+               <p className="text-slate-600 text-lg">{t('reg_subtitle')}</p>
             </div>
             <RegistrationForm onSubmit={handleRegistrationSubmit} />
           </div>
@@ -368,8 +370,8 @@ const App: React.FC = () => {
         {view === 'booking' && studentData && (
            <div className="bg-slate-50 py-10 px-4 animate-fade-in">
             <div className="max-w-3xl mx-auto text-center mb-8">
-               <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">Select Your Pass</h2>
-               <p className="text-slate-600 text-lg">Choose a package that suits your attendance plan.</p>
+               <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">{t('ticket_title')}</h2>
+               <p className="text-slate-600 text-lg">{t('ticket_subtitle')}</p>
             </div>
             <TicketBooking onSelect={handleTicketSelect} />
           </div>
@@ -378,8 +380,8 @@ const App: React.FC = () => {
         {view === 'payment' && ticketData && (
           <div className="bg-slate-50 py-10 px-4">
             <div className="max-w-3xl mx-auto text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">Complete Payment</h2>
-              <p className="text-slate-600 text-lg">Finalize your registration to submit for verification.</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-school-primary mb-3">{t('payment_title')}</h2>
+              <p className="text-slate-600 text-lg">{t('payment_subtitle')}</p>
             </div>
             <PaymentGateway 
               ticket={ticketData} 
@@ -395,23 +397,22 @@ const App: React.FC = () => {
               <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-12 h-12" />
               </div>
-              <h2 className="text-3xl font-serif font-bold text-school-primary mb-4">Registration Submitted!</h2>
+              <h2 className="text-3xl font-serif font-bold text-school-primary mb-4">{t('reg_submitted')}</h2>
               <p className="text-slate-600 mb-8 text-lg">
-                Thank you for registering. Your payment is currently under review by the admin team. 
-                Once approved, you will be able to download your ID card.
+                {t('reg_submitted_msg')}
               </p>
               <div className="space-y-3">
                 <button 
                   onClick={() => navigate('home')}
                   className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-xl transition-colors"
                 >
-                  Back to Home
+                  {t('nav_home')}
                 </button>
                 <button 
                   onClick={() => navigate('check-status')}
                   className="w-full bg-school-primary hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-xl transition-colors"
                 >
-                  Download Card Later
+                  {t('nav_download')}
                 </button>
               </div>
             </div>
@@ -449,7 +450,7 @@ const App: React.FC = () => {
       <AiAssistant />
       <LiveChat />
       
-      <footer className="bg-[#0a192f] text-slate-400 py-16 mt-auto no-print border-t border-slate-800 relative overflow-hidden">
+      <footer className="bg-[#0a192f] text-slate-400 py-16 mt-auto no-print border-t border-slate-800 relative overflow-hidden font-sans">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
           <div className="mb-8 flex justify-center">
@@ -457,19 +458,19 @@ const App: React.FC = () => {
                <img src={schoolLogo} alt="DHS Logo" className="w-full h-full object-contain" />
              </div>
           </div>
-          <h3 className="text-white font-serif text-2xl mb-3 tracking-wide">Dighali High School Reunion 2026</h3>
+          <h3 className="text-white font-serif text-2xl mb-3 tracking-wide">{t('school_name')} {t('reunion_title_short')}</h3>
           <p className="max-w-md mx-auto text-sm mb-10 text-slate-400 font-light leading-relaxed">
-             Celebrating 97 years of academic excellence and lifelong friendships. <br/> Established in 1929.
+             {t('footer_desc')}
           </p>
           
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs tracking-wide text-slate-500">
-             <p>&copy; 2026 Reunion Committee. All rights reserved.</p>
+             <p>{t('copyright')}</p>
              <div className="flex items-center space-x-6 mt-4 md:mt-0">
                 <button onClick={() => navigate('admin-login')} className="flex items-center hover:text-white transition-colors">
-                  <Lock className="w-3 h-3 mr-1" /> Admin Access
+                  <Lock className="w-3 h-3 mr-1" /> {t('admin_login')}
                 </button>
                 <p className="flex items-center">
-                  Designed & Built by <a href="https://m.me/habib.ahsan0" target="_blank" rel="noopener noreferrer" className="ml-1 text-amber-400 hover:text-amber-300 transition-colors font-bold">Habib</a>
+                  {t('tech_support')} <a href="https://m.me/habib.ahsan0" target="_blank" rel="noopener noreferrer" className="ml-1 text-amber-400 hover:text-amber-300 transition-colors font-bold">Habib</a>
                 </p>
              </div>
           </div>
@@ -478,5 +479,13 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
 
 export default App;

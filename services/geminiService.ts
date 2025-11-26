@@ -3,24 +3,32 @@ import { NostalgiaContent } from '../types';
 
 const API_BASE = '/api';
 
-export const generateNostalgiaData = async (year: number): Promise<NostalgiaContent> => {
+export const generateNostalgiaData = async (year: number, language: 'bn' | 'en' = 'bn'): Promise<NostalgiaContent> => {
   
   const getFallbackData = (y: number): NostalgiaContent => {
-    if (y < 1950) return { fact: "The world was in a state of rebuilding and hope.", song: "White Christmas - Bing Crosby", movie: "Casablanca" };
-    if (y < 1960) return { fact: "The rise of rock and roll changed youth culture.", song: "Rock Around the Clock", movie: "Singin' in the Rain" };
-    if (y < 1970) return { fact: "Humans landed on the moon for the first time.", song: "Hey Jude - The Beatles", movie: "The Sound of Music" };
-    if (y < 1980) return { fact: "Disco music and bell-bottoms were the trend.", song: "Dancing Queen - ABBA", movie: "Star Wars" };
-    if (y < 1990) return { fact: "The personal computer revolution began.", song: "Billie Jean - Michael Jackson", movie: "E.T. the Extra-Terrestrial" };
-    if (y < 2000) return { fact: "The internet started connecting the world.", song: "Smells Like Teen Spirit", movie: "Titanic" };
-    if (y < 2010) return { fact: "Social media began to change how we communicate.", song: "Crazy in Love - Beyoncé", movie: "Avatar" };
-    return { fact: "The digital age of smartphones took over.", song: "Rolling in the Deep - Adele", movie: "The Avengers" };
+    if (language === 'en') {
+      if (y < 1971) return { fact: "East Pakistan era.", song: "Purano Sei Diner Kotha", movie: "Jibon Theke Neya" };
+      if (y < 1980) return { fact: "Reconstruction of independent Bangladesh.", song: "Joy Bangla Banglar Joy", movie: "Ora 11 Jon" };
+      if (y < 1990) return { fact: "Era of black and white TV in Bangladesh.", song: "Hayre Manush Rongin Fanus", movie: "Bhat De" };
+      if (y < 2000) return { fact: "Age of VCR and cassette players.", song: "Bangladesh - James", movie: "Beder Meye Josna" };
+      if (y < 2010) return { fact: "Beginning of mobile phones and internet.", song: "Cholo Bangladesh", movie: "Monpura" };
+      return { fact: "Digital Bangladesh and Smartphone era.", song: "Cholo Paltai", movie: "Aynabaji" };
+    }
+
+    // Fallback in Bengali
+    if (y < 1971) return { fact: "তৎকালীন পূর্ব পাকিস্তান আমল।", song: "পুরানো সেই দিনের কথা", movie: "জীবন থেকে নেয়া" };
+    if (y < 1980) return { fact: "স্বাধীন বংলাদেশের পুনর্গঠন কাল।", song: "জয় বাংলা বাংলার জয়", movie: "ওরা ১১ জন" };
+    if (y < 1990) return { fact: "বাংলাদেশে সাদা কালো টিভির প্রচলন।", song: "হায়রে মানুষ রঙিন ফানুস", movie: "ভাত দে" };
+    if (y < 2000) return { fact: "ভিসিআর এবং ক্যাসেট প্লেয়ারের যুগ।", song: "বাংলাদেশ - জেমস", movie: "বেদের মেয়ে জোছনা" };
+    if (y < 2010) return { fact: "মোবাইল ফোন ও ইন্টারনেটের শুরু।", song: "চলো বাংলাদেশ", movie: "মনপুরা" };
+    return { fact: "ডিজিটাল বাংলাদেশ এবং স্মার্টফোনের যুগ।", song: "চলো পাল্টাই", movie: "আয়নাবাজি" };
   };
 
   try {
     const response = await fetch(`${API_BASE}/nostalgia`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year })
+      body: JSON.stringify({ year, language })
     });
 
     if (!response.ok) {
@@ -45,13 +53,13 @@ export const getChatResponse = async (message: string, history: { role: 'user' |
     });
 
     if (!response.ok) {
-      return "I'm currently having trouble reaching the server. Please check your internet connection.";
+      return "সার্ভারে সংযোগ করতে সমস্যা হচ্ছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।";
     }
 
     const data = await response.json();
     return data.text;
   } catch (error) {
     console.error("Chat error:", error);
-    return "I'm having trouble connecting to the server right now. Please try again later.";
+    return "দুঃখিত, আমি এখন সার্ভারের সাথে সংযোগ করতে পারছি না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।";
   }
 };

@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Registration } from '../types';
 import { Lock, CheckCircle, XCircle, Search, DollarSign, Calendar, Smartphone, User, QrCode, X, AlertTriangle } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AdminDashboardProps {
   registrations: Registration[];
@@ -25,6 +27,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogin, 
   isAuthenticated 
 }) => {
+  const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('');
@@ -40,14 +43,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       onLogin();
       setError('');
     } else {
-      setError('Invalid admin password');
+      setError(t('invalid_pass'));
     }
   };
 
   // Initialize Scanner when isScanning becomes true
   useEffect(() => {
     if (isScanning) {
-      // Small timeout to ensure DOM element exists
       const timeoutId = setTimeout(() => {
         const scanner = new Html5QrcodeScanner(
           "reader",
@@ -56,7 +58,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0
           },
-          /* verbose= */ false
+          false
         );
 
         scanner.render(onScanSuccess, onScanFailure);
@@ -86,20 +88,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const verifyTicket = (qrData: string) => {
     try {
-      // The QR code contains JSON: { id: ticketId, name: fullName, year: sscYear }
       const parsed = JSON.parse(qrData);
       const ticketId = parsed.id;
 
       if (!ticketId) throw new Error("Invalid QR Data");
 
-      // Search in loaded registrations
       const match = registrations.find(r => r.ticket.ticketId === ticketId);
 
       if (!match) {
         setScanResult({
           status: 'error',
-          title: 'Invalid Ticket',
-          message: `Ticket ID ${ticketId} does not exist in the database.`
+          title: t('invalid_ticket'),
+          message: `${t('invalid_msg')} (ID: ${ticketId})`
         });
         return;
       }
@@ -107,22 +107,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (match.status === 'approved') {
         setScanResult({
           status: 'success',
-          title: 'Verified Access',
-          message: `${match.student.fullName} is authorized to enter.`,
+          title: t('valid_entry'),
+          message: `${match.student.fullName} - ${t('entry_allowed')}`,
           data: match
         });
       } else if (match.status === 'pending') {
         setScanResult({
           status: 'warning',
-          title: 'Payment Pending',
-          message: 'This ticket exists but payment is NOT verified yet.',
+          title: t('payment_pending'),
+          message: t('payment_pending_msg'),
           data: match
         });
       } else {
         setScanResult({
           status: 'error',
-          title: 'Ticket Rejected',
-          message: 'This registration was previously rejected.',
+          title: t('reject'),
+          message: t('rejected_msg'),
           data: match
         });
       }
@@ -131,7 +131,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setScanResult({
         status: 'error',
         title: 'Scan Error',
-        message: 'Could not read QR code format. Is this a valid event ticket?'
+        message: 'Could not parse QR code.'
       });
     }
   };
@@ -145,25 +145,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
+      <div className="min-h-[60vh] flex items-center justify-center px-4 font-sans">
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md w-full">
           <div className="text-center mb-6">
             <div className="inline-flex p-3 bg-slate-100 rounded-full mb-4">
               <Lock className="w-8 h-8 text-slate-600" />
             </div>
-            <h2 className="text-2xl font-serif font-bold text-school-primary">Admin Access</h2>
-            <p className="text-slate-500 text-sm mt-1">Authorized personnel only</p>
+            <h2 className="text-2xl font-serif font-bold text-school-primary">{t('admin_panel')}</h2>
+            <p className="text-slate-500 text-sm mt-1">{t('admin_subtitle')}</p>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">{t('password')}</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-school-primary/50"
-                placeholder="Enter admin password"
+                placeholder={t('password_placeholder')}
               />
               {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
             </div>
@@ -171,7 +171,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               type="submit"
               className="w-full bg-school-primary text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition-colors"
             >
-              Login to Dashboard
+              {t('enter_dashboard')}
             </button>
           </form>
         </div>
@@ -179,7 +179,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   }
 
-  // Sort: Pending first, then by date
   const sortedRegistrations = [...registrations].sort((a, b) => {
     if (a.status === 'pending' && b.status !== 'pending') return -1;
     if (a.status !== 'pending' && b.status === 'pending') return 1;
@@ -198,7 +197,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     .reduce((acc, curr) => acc + curr.payment.total, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in relative">
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in relative font-sans">
       
       {/* SCANNER MODAL */}
       {(isScanning || scanResult) && (
@@ -207,7 +206,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
               <h3 className="font-bold flex items-center">
                 <QrCode className="w-5 h-5 mr-2" /> 
-                {isScanning ? 'Scanning Ticket...' : 'Scan Result'}
+                {isScanning ? t('scanning') : t('scan_result')}
               </h3>
               <button onClick={() => { closeScanner(); setScanResult(null); }} className="hover:bg-white/20 p-1 rounded-full">
                 <X className="w-5 h-5" />
@@ -246,16 +245,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   {scanResult.data && (
                     <div className="bg-slate-50 p-4 rounded-xl text-left text-sm border border-slate-200 mb-6">
                       <div className="grid grid-cols-2 gap-2">
-                        <p className="text-slate-500">Name:</p>
+                        <p className="text-slate-500">{t('full_name')}:</p>
                         <p className="font-bold text-slate-800">{scanResult.data.student.fullName}</p>
                         
-                        <p className="text-slate-500">Ticket ID:</p>
+                        <p className="text-slate-500">ID:</p>
                         <p className="font-mono text-slate-800">{scanResult.data.ticket.ticketId}</p>
                         
-                        <p className="text-slate-500">Batch:</p>
+                        <p className="text-slate-500">{t('ssc_year')}:</p>
                         <p className="font-bold text-slate-800">{scanResult.data.student.sscYear}</p>
                         
-                        <p className="text-slate-500">Guests:</p>
+                        <p className="text-slate-500">{t('guests')}:</p>
                         <p className="font-bold text-slate-800">{scanResult.data.ticket.guests}</p>
                       </div>
                     </div>
@@ -265,7 +264,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onClick={() => { setScanResult(null); setIsScanning(true); }}
                     className="w-full bg-school-primary text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors"
                   >
-                    Scan Another
+                    {t('scan_again')}
                   </button>
                 </div>
               )}
@@ -276,22 +275,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-serif font-bold text-school-primary">Admin Dashboard</h2>
-          <p className="text-slate-600">Manage registrations and verify payments.</p>
+          <h2 className="text-3xl font-serif font-bold text-school-primary">{t('dashboard_title')}</h2>
+          <p className="text-slate-600">{t('dashboard_desc')}</p>
         </div>
         <div className="flex flex-wrap gap-4">
           <button 
             onClick={() => setIsScanning(true)}
             className="bg-school-primary text-white px-5 py-2 rounded-lg hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20 flex items-center font-bold transform hover:-translate-y-0.5"
           >
-            <QrCode className="w-5 h-5 mr-2" /> Scan Ticket
+            <QrCode className="w-5 h-5 mr-2" /> {t('scan_ticket')}
           </button>
           <div className="bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 text-amber-800">
-            <span className="block text-xs font-bold uppercase">Pending</span>
+            <span className="block text-xs font-bold uppercase">{t('pending')}</span>
             <span className="text-xl font-bold">{pendingCount}</span>
           </div>
           <div className="bg-green-50 px-4 py-2 rounded-lg border border-green-200 text-green-800">
-            <span className="block text-xs font-bold uppercase">Revenue</span>
+            <span className="block text-xs font-bold uppercase">{t('revenue')}</span>
             <span className="text-xl font-bold">৳ {totalRevenue.toLocaleString()}</span>
           </div>
         </div>
@@ -304,7 +303,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
         <input 
           type="text"
-          placeholder="Search by Name, Mobile, or TrxID..." 
+          placeholder={t('search_placeholder')}
           className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-school-primary/20"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -316,18 +315,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm uppercase tracking-wider">
-                <th className="p-4 font-bold">Status</th>
-                <th className="p-4 font-bold">Student Info</th>
-                <th className="p-4 font-bold">Ticket</th>
-                <th className="p-4 font-bold">Payment Info</th>
-                <th className="p-4 font-bold">Amount</th>
-                <th className="p-4 font-bold text-right">Actions</th>
+                <th className="p-4 font-bold">{t('status')}</th>
+                <th className="p-4 font-bold">{t('student_info')}</th>
+                <th className="p-4 font-bold">{t('ticket')}</th>
+                <th className="p-4 font-bold">{t('payment_info')}</th>
+                <th className="p-4 font-bold">{t('amount')}</th>
+                <th className="p-4 font-bold text-right">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredRegistrations.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">No registrations found.</td>
+                  <td colSpan={6} className="p-8 text-center text-slate-500">{t('no_data')}</td>
                 </tr>
               ) : (
                 filteredRegistrations.map(reg => (
@@ -359,7 +358,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </td>
                     <td className="p-4">
                       <p className="font-medium text-slate-800 capitalize">{reg.ticket.type}</p>
-                      <p className="text-xs text-slate-500">{reg.ticket.guests} Guest(s)</p>
+                      <p className="text-xs text-slate-500">{reg.ticket.guests} P</p>
                       <p className="text-xs font-mono text-slate-400 mt-1">{reg.ticket.ticketId}</p>
                     </td>
                     <td className="p-4">
@@ -371,9 +370,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </td>
                     <td className="p-4">
                       <p className="font-bold text-school-primary">৳ {reg.payment.total}</p>
-                      {reg.payment.fee > 0 && (
-                         <p className="text-[10px] text-slate-400">(inc. {reg.payment.fee} fee)</p>
-                      )}
                     </td>
                     <td className="p-4 text-right">
                       {reg.status === 'pending' ? (
@@ -381,7 +377,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <button 
                             onClick={() => onReject(reg.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip"
-                            title="Reject"
+                            title={t('reject')}
                           >
                             <XCircle className="w-5 h-5" />
                           </button>
@@ -389,11 +385,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             onClick={() => onApprove(reg.id)}
                             className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm font-bold shadow-sm"
                           >
-                            <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
+                            <CheckCircle className="w-4 h-4 mr-1.5" /> {t('approve')}
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 italic">Processed</span>
+                        <span className="text-xs text-slate-400 italic">{t('completed')}</span>
                       )}
                     </td>
                   </tr>

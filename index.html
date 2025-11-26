@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#1e3a8a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Dighali High School Reunion</title>
+    <title>দিঘলী উচ্চ বিদ্যালয় পুনর্মিলনী</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       // Simple polyfill for global process to prevent crashes in browser
       window.process = { env: { NODE_ENV: 'production' } };
@@ -17,7 +17,7 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Hind Siliguri', 'Inter', 'sans-serif'], // Prioritize Bengali font
               serif: ['Playfair Display', 'serif'],
             },
             colors: {
@@ -71,19 +71,19 @@
         -webkit-tap-highlight-color: transparent;
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
     "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
-    "html5-qrcode": "https://aistudiocdn.com/html5-qrcode@^2.3.8",
     "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0",
+    "html5-qrcode": "https://aistudiocdn.com/html5-qrcode@^2.3.8",
     "vite-plugin-pwa": "https://aistudiocdn.com/vite-plugin-pwa@^1.1.0"
   }
 }

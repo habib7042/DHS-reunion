@@ -6,15 +6,17 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, Printer, Sparkles, History, Music, Film, User, Camera, ImagePlus, Loader, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface IDCardGeneratorProps {
   student: StudentData;
   ticket: TicketData;
-  payment?: PaymentDetails | null; // Added payment info for invoice
+  payment?: PaymentDetails | null; 
   logo: string;
 }
 
 export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticket, payment, logo }) => {
+  const { t, language } = useLanguage();
   const [nostalgia, setNostalgia] = useState<NostalgiaContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -24,9 +26,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Safety check to prevent crashes if data is missing
   if (!student || !ticket) {
-    return <div className="p-8 text-center">Error: Missing registration data. Please try checking your status again.</div>;
+    return <div className="p-8 text-center font-sans">Error: No registration data found.</div>;
   }
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     const fetchData = async () => {
       if (student.sscYear) {
         try {
-          const data = await generateNostalgiaData(Number(student.sscYear));
+          // Pass current language to API
+          const data = await generateNostalgiaData(Number(student.sscYear), language);
           if (isMounted) {
             setNostalgia(data);
             setLoading(false);
@@ -47,7 +49,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
     };
     fetchData();
     return () => { isMounted = false; };
-  }, [student.sscYear]);
+  }, [student.sscYear, language]); // Re-fetch if language changes
 
   const handlePrint = () => {
     window.print();
@@ -58,23 +60,16 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
     try {
       setDownloading(true);
-      
-      // 1. Scroll to top to ensure element is in view/renderable
       window.scrollTo(0, 0);
-
-      // 2. Wait for images/fonts to settle
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // 3. Capture with Standard Settings (JPEG to fix blank issue)
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Standard High Quality (not Ultra HD)
-        useCORS: true, // Critical for images
-        backgroundColor: '#ffffff', // Force white background
+        scale: 2,
+        useCORS: true, 
+        backgroundColor: '#ffffff',
         logging: false,
-        // Removed ignoreElements to prevent accidental content hiding
       });
 
-      // 4. Generate PDF using JPEG (Smaller size, no transparency bugs)
       const imgData = canvas.toDataURL('image/jpeg', 0.95); 
       
       const pdf = new jsPDF({
@@ -84,36 +79,30 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      
-      // Calculate dimensions to fit on A4 while maintaining aspect ratio
       const canvasRatio = canvas.height / canvas.width;
-      const imgWidth = 120; // 120mm width
+      const imgWidth = 120;
       const imgHeight = imgWidth * canvasRatio;
-      
       const x = (pdfWidth - imgWidth) / 2;
-      const y = 20; // Top margin
+      const y = 20;
 
-      // Add title
+      // NOTE: PDF text kept in English because standard jsPDF fonts do not support Bengali.
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
-      pdf.setTextColor(30, 58, 138); // School Primary Color
+      pdf.setTextColor(30, 58, 138); 
       pdf.text("Dighali High School Reunion 2026", pdfWidth / 2, 15, { align: "center" });
       
-      // Add the card image
       pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
       
-      // Add footer instructions
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
       pdf.setTextColor(100);
       pdf.text("Please print this card and bring it to the venue.", pdfWidth / 2, y + imgHeight + 10, { align: "center" });
       
-      // Save
       pdf.save(`DHS_Card_${student.sscYear}_${student.fullName.replace(/\s+/g, '_')}.pdf`);
 
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Could not generate PDF. Please try the 'Print Badge' button instead.");
+      alert("PDF generation failed. Please use Print option.");
     } finally {
       setDownloading(false);
     }
@@ -122,16 +111,15 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
   const handleDownloadInvoice = async () => {
     try {
       setGeneratingInvoice(true);
-      
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       let yPos = 20;
 
-      // --- HEADER ---
+      // KEEP INVOICE TEXT IN ENGLISH TO AVOID FONT ISSUES
       doc.setFontSize(18);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 58, 138); // Blue 900
+      doc.setTextColor(30, 58, 138); 
       doc.text("Dighali High School Reunion 2026", pageWidth / 2, yPos, { align: "center" });
       yPos += 10;
 
@@ -218,7 +206,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
     } catch (error) {
       console.error("Invoice generation failed", error);
-      alert("Failed to generate invoice.");
+      alert("Invoice generation failed.");
     } finally {
       setGeneratingInvoice(false);
     }
@@ -242,7 +230,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4 pb-20">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4 pb-20 font-sans">
       {/* Print Specific Styles */}
       <style>{`
         @media print {
@@ -287,13 +275,13 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
         <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4 shadow-sm">
           <Sparkles className="w-8 h-8 text-green-600" />
         </div>
-        <h2 className="text-3xl font-serif font-bold text-school-primary mb-2">You're Registered!</h2>
-        <p className="text-slate-600 max-w-md mx-auto mb-4">Upload your photo to complete your entry badge.</p>
+        <h2 className="text-3xl font-serif font-bold text-school-primary mb-2">{t('reg_success')}</h2>
+        <p className="text-slate-600 max-w-md mx-auto mb-4">{t('upload_photo_msg')}</p>
         
         {!photo && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-sm mx-auto mb-6 flex items-center animate-pulse cursor-pointer hover:bg-amber-100 transition-colors shadow-sm" onClick={triggerFileInput}>
              <Camera className="w-5 h-5 text-amber-600 mr-2" />
-             <span className="text-sm text-amber-800 font-bold">Click avatar to upload photo</span>
+             <span className="text-sm text-amber-800 font-bold">{t('click_upload')}</span>
           </div>
         )}
         
@@ -302,7 +290,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             onClick={handlePrint}
             className="flex items-center px-6 py-3 bg-school-primary text-white rounded-lg hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20 font-medium transform hover:-translate-y-0.5"
           >
-            <Printer className="w-4 h-4 mr-2" /> Print Badge
+            <Printer className="w-4 h-4 mr-2" /> {t('btn_print')}
           </button>
           
           <button 
@@ -315,7 +303,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             ) : (
               <Download className="w-4 h-4 mr-2" />
             )}
-            {downloading ? 'Generating...' : 'Save as PDF'}
+            {downloading ? t('generating') : t('btn_pdf')}
           </button>
 
           <button 
@@ -328,12 +316,12 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
              ) : (
                <FileText className="w-4 h-4 mr-2" />
              )}
-             {generatingInvoice ? 'Creating...' : 'Download Invoice'}
+             {generatingInvoice ? t('generating') : t('btn_invoice')}
           </button>
         </div>
       </div>
 
-      {/* The Card Container - Vertical Event Badge (Width 400px, Auto Height) */}
+      {/* The Card Container */}
       <div id="print-area-container" className="flex flex-col items-center justify-center w-full">
         <div className="relative group drop-shadow-2xl">
           <div 
@@ -353,10 +341,10 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                 <div className="w-14 h-14 mb-2 bg-white rounded-full p-0.5 border border-slate-100 shadow-sm">
                    <img src={logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
-                <h1 className="text-school-primary font-serif font-bold text-xl leading-tight">DIGHALI HIGH SCHOOL</h1>
+                <h1 className="text-school-primary font-serif font-bold text-xl leading-tight">{t('school_name')}</h1>
                 <div className="flex items-center gap-2 mt-1">
                    <div className="h-[1px] w-6 bg-school-accent"></div>
-                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Est. 1929</span>
+                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">{t('card_est')}</span>
                    <div className="h-[1px] w-6 bg-school-accent"></div>
                 </div>
               </div>
@@ -367,7 +355,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               
               {/* Event Title Badge */}
               <div className="mb-5 bg-gradient-to-r from-school-primary to-blue-800 text-white px-4 py-1.5 rounded-full shadow-md shrink-0">
-                 <span className="text-[10px] font-bold uppercase tracking-widest">Reunion 2026</span>
+                 <span className="text-[10px] font-bold uppercase tracking-widest">{t('reunion_title_short')}</span>
               </div>
 
               {/* Photo with Ring */}
@@ -391,7 +379,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                  {/* Volunteer Tag */}
                  {student.isVolunteer && (
                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-school-accent text-school-primary text-[10px] font-bold px-3 py-0.5 rounded border border-white uppercase">
-                     Volunteer
+                     {t('card_volunteer')}
                    </div>
                  )}
               </div>
@@ -405,11 +393,11 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
               {/* Info Grid */}
               <div className="w-full grid grid-cols-2 gap-3 text-center border-t border-b border-slate-100 py-4 mb-auto shrink-0">
                 <div>
-                   <span className="block text-[10px] text-slate-400 font-bold uppercase">Batch</span>
+                   <span className="block text-[10px] text-slate-400 font-bold uppercase">{t('card_batch')}</span>
                    <span className="block text-2xl font-bold text-school-primary">{student.sscYear}</span>
                 </div>
                 <div className="border-l border-slate-100">
-                   <span className="block text-[10px] text-slate-400 font-bold uppercase">Guests</span>
+                   <span className="block text-[10px] text-slate-400 font-bold uppercase">{t('card_guest')}</span>
                    <span className="block text-2xl font-bold text-school-primary">{ticket.guests}</span>
                 </div>
               </div>
@@ -425,7 +413,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
 
             {/* Footer */}
             <div className="bg-slate-900 text-center py-3 mt-auto shrink-0 absolute bottom-0 w-full left-0">
-              <p className="text-[10px] text-school-accent font-bold uppercase tracking-widest">Authorized Entry • 97 Years</p>
+              <p className="text-[10px] text-school-accent font-bold uppercase tracking-widest">{t('card_footer')}</p>
             </div>
           </div>
         </div>
@@ -437,9 +425,9 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
           <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-bold text-lg text-indigo-900">Time Machine: {student.sscYear}</h3>
+                <h3 className="font-bold text-lg text-indigo-900">{t('ai_memory_title')}: {student.sscYear}</h3>
              </div>
-             <span className="text-xs font-bold bg-white text-indigo-600 px-2 py-1 rounded border border-indigo-200">AI Generated</span>
+             <span className="text-xs font-bold bg-white text-indigo-600 px-2 py-1 rounded border border-indigo-200">{t('ai_generated')}</span>
           </div>
           
           <div className="p-6">
@@ -457,7 +445,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
             ) : nostalgia ? (
                <div className="space-y-6">
                   <div className="relative pl-4 border-l-2 border-indigo-200">
-                     <p className="text-sm text-slate-600 italic">"Do you remember this?"</p>
+                     <p className="text-sm text-slate-600 italic">{t('memory_prompt')}</p>
                      <p className="text-base text-slate-800 font-medium mt-1">{nostalgia.fact}</p>
                   </div>
                   
@@ -467,7 +455,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                           <Music className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">On The Radio</p>
+                          <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">{t('pop_song')}</p>
                           <p className="text-sm text-pink-900 font-bold leading-tight">{nostalgia.song}</p>
                         </div>
                      </div>
@@ -476,7 +464,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                            <Film className="w-5 h-5" />
                         </div>
                         <div>
-                           <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">At The Movies</p>
+                           <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">{t('pop_movie')}</p>
                            <p className="text-sm text-amber-900 font-bold leading-tight">{nostalgia.movie}</p>
                         </div>
                      </div>
@@ -484,7 +472,7 @@ export const IDCardGenerator: React.FC<IDCardGeneratorProps> = ({ student, ticke
                </div>
             ) : (
               <div className="text-center py-8 text-slate-400">
-                <p>Could not retrieve memory lane data.</p>
+                <p>{t('no_memory_data')}</p>
               </div>
             )}
           </div>

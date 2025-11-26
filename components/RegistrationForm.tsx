@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { StudentData } from '../types';
 import { User, Calendar, Phone, Mail, Briefcase, MapPin, CheckCircle, GraduationCap, CheckSquare } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface RegistrationFormProps {
   onSubmit: (data: StudentData) => void;
 }
 
 export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<StudentData>({
     fullName: '',
     sscYear: 2000,
@@ -56,15 +59,15 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
   const years = Array.from({ length: 97 }, (_, i) => 2026 - i); 
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden my-4 border border-slate-100 transform transition-all">
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden my-4 border border-slate-100 transform transition-all font-sans">
       <div className="bg-gradient-to-r from-school-primary to-blue-900 px-8 py-6 border-b border-blue-800/50">
         <h2 className="text-2xl font-serif font-bold text-white flex items-center">
           <div className="bg-white/10 p-2 rounded-lg mr-3">
              <User className="h-6 w-6 text-school-accent" />
           </div>
-          Personal Information
+          {t('personal_info')}
         </h2>
-        <p className="text-blue-200 mt-2 text-sm ml-14">We will print these details on your ID card.</p>
+        <p className="text-blue-200 mt-2 text-sm ml-14">{t('info_note')}</p>
       </div>
       
       <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-8">
@@ -72,12 +75,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
           {/* Personal Info */}
           <div className="space-y-6">
             <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center">
-              <User className="w-4 h-4 mr-2 text-school-secondary" /> Basic Details
+              <User className="w-4 h-4 mr-2 text-school-secondary" /> {t('primary_details')}
             </h3>
             
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">Full Name</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('full_name')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <User className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -87,7 +90,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                     name="fullName"
                     required
                     className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-school-primary/20 focus:border-school-primary transition-all text-gray-900 placeholder-slate-300 bg-slate-50 focus:bg-white"
-                    placeholder="Ex: Md. Rahim Uddin"
+                    placeholder={t('placeholder_name')}
                     value={formData.fullName}
                     onChange={handleChange}
                   />
@@ -97,7 +100,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
 
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">SSC Year</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('ssc_year')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <GraduationCap className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -122,7 +125,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
 
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">Mobile Number</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('mobile_no')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <Phone className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -142,7 +145,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
 
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">Email (Optional)</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('email')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -163,12 +166,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
           {/* Address & Occupation */}
           <div className="space-y-6">
             <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center">
-               <Briefcase className="w-4 h-4 mr-2 text-school-secondary" /> Professional & Address
+               <Briefcase className="w-4 h-4 mr-2 text-school-secondary" /> {t('occupation_addr')}
             </h3>
 
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">Current Occupation</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('occupation')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <Briefcase className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -178,7 +181,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                     name="occupation"
                     required
                     className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-school-primary/20 focus:border-school-primary transition-all text-gray-900 placeholder-slate-300 bg-slate-50 focus:bg-white"
-                    placeholder="Job Title / Business / Student"
+                    placeholder={t('placeholder_occupation')}
                     value={formData.occupation}
                     onChange={handleChange}
                   />
@@ -188,7 +191,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
 
             <div className="group">
               <label className="block">
-                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">Present Address</span>
+                <span className="text-slate-600 text-sm font-bold mb-1.5 block group-focus-within:text-school-primary transition-colors">{t('present_addr')}</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <MapPin className="h-5 w-5 text-slate-400 group-focus-within:text-school-primary transition-colors" />
@@ -198,7 +201,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                     name="presentAddress"
                     required
                     className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-school-primary/20 focus:border-school-primary transition-all text-gray-900 placeholder-slate-300 bg-slate-50 focus:bg-white"
-                    placeholder="City, Area, Road No"
+                    placeholder="..."
                     value={formData.presentAddress}
                     onChange={handleChange}
                   />
@@ -208,7 +211,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
 
             <div className="group">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-slate-600 text-sm font-bold block group-focus-within:text-school-primary transition-colors">Permanent Address</span>
+                <span className="text-slate-600 text-sm font-bold block group-focus-within:text-school-primary transition-colors">{t('permanent_addr')}</span>
                 
                 <label className="flex items-center cursor-pointer bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded transition-colors">
                   <input 
@@ -217,7 +220,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                     onChange={handleSameAddressToggle}
                     className="rounded border-gray-300 text-school-primary focus:ring-school-primary/20 w-3 h-3"
                   />
-                  <span className="ml-1.5 text-xs text-slate-600 font-medium select-none">Same as Present</span>
+                  <span className="ml-1.5 text-xs text-slate-600 font-medium select-none">{t('same_as_present')}</span>
                 </label>
               </div>
               
@@ -230,7 +233,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                   name="permanentAddress"
                   required
                   className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-school-primary/20 focus:border-school-primary transition-all text-gray-900 placeholder-slate-300 bg-slate-50 focus:bg-white"
-                  placeholder="Village, District"
+                  placeholder="..."
                   value={formData.permanentAddress}
                   onChange={handleChange}
                 />
@@ -249,8 +252,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
                   />
                 </div>
                 <div>
-                  <span className={`block font-bold ${formData.isVolunteer ? 'text-amber-900' : 'text-slate-700'}`}>I want to be a Volunteer</span>
-                  <p className={`text-xs ${formData.isVolunteer ? 'text-amber-700' : 'text-slate-500'}`}>Join the organizing team and help make this event a success!</p>
+                  <span className={`block font-bold ${formData.isVolunteer ? 'text-amber-900' : 'text-slate-700'}`}>{t('volunteer_check')}</span>
+                  <p className={`text-xs ${formData.isVolunteer ? 'text-amber-700' : 'text-slate-500'}`}>{t('volunteer_desc')}</p>
                 </div>
               </label>
             </div>
@@ -262,7 +265,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSubmit }) 
             type="submit"
             className="bg-school-primary hover:bg-blue-800 text-white font-bold py-4 px-10 rounded-full shadow-lg shadow-blue-900/20 transform transition hover:-translate-y-1 hover:shadow-xl flex items-center text-lg"
           >
-            Proceed to Booking <CheckCircle className="ml-2 h-6 w-6" />
+            {t('btn_goto_ticket')} <CheckCircle className="ml-2 h-6 w-6" />
           </button>
         </div>
       </form>

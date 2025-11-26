@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { TicketData, TShirtSize } from '../types';
 import { Ticket, Users, User, Star, Gift, Utensils, Camera, Shirt, Check, X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface TicketBookingProps {
   onSelect: (ticket: TicketData) => void;
@@ -14,6 +15,7 @@ interface PendingSelection {
 }
 
 export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
+  const { t } = useLanguage();
   const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
   const [sizes, setSizes] = useState<TShirtSize[]>([]);
 
@@ -43,7 +45,7 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto my-8 px-4 relative">
+    <div className="max-w-6xl mx-auto my-8 px-4 relative font-sans">
       
       {/* Size Selection Modal */}
       {pendingSelection && (
@@ -51,7 +53,7 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fade-in-up">
             <div className="bg-school-primary p-4 flex justify-between items-center text-white">
               <h3 className="font-bold flex items-center text-lg">
-                <Shirt className="w-5 h-5 mr-2 text-amber-400" /> Select T-Shirt Sizes
+                <Shirt className="w-5 h-5 mr-2 text-amber-400" /> {t('tshirt_selection')}
               </h3>
               <button onClick={() => setPendingSelection(null)} className="hover:bg-white/10 p-1 rounded-full">
                 <X className="w-5 h-5" />
@@ -60,14 +62,14 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
             
             <div className="p-6">
               <p className="text-slate-600 mb-6 text-sm">
-                Please select the T-Shirt size for each member included in the <strong>{pendingSelection.type}</strong> pass.
+                 <strong>{pendingSelection.type === 'single' ? t('single_pass') : pendingSelection.type === 'couple' ? t('couple_pass') : t('family_pass')}</strong> - {t('tshirt_note')}
               </p>
 
               <div className="space-y-4 mb-8">
                 {sizes.map((size, index) => (
                   <div key={index} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <span className="font-bold text-slate-700 text-sm">
-                      {index === 0 ? 'Primary Member (You)' : `Guest Member #${index}`}
+                      {index === 0 ? t('primary_member') : `${t('guest_member')} #${index}`}
                     </span>
                     <div className="flex items-center gap-2">
                       {['S', 'M', 'L', 'XL', 'XXL'].map((s) => (
@@ -92,7 +94,7 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
                 onClick={confirmSelection}
                 className="w-full bg-school-accent text-school-primary font-bold py-3 rounded-xl hover:bg-amber-400 transition-colors flex items-center justify-center shadow-lg"
               >
-                Confirm & Proceed <Check className="w-5 h-5 ml-2" />
+                {t('confirm_proceed')} <Check className="w-5 h-5 ml-2" />
               </button>
             </div>
           </div>
@@ -107,54 +109,54 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
             <div className="inline-flex p-4 rounded-full bg-blue-50 text-blue-600 mb-4 group-hover:scale-110 transition-transform">
               <User className="h-8 w-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800">Alumni Single</h3>
-            <p className="text-sm text-slate-500 mt-1">For the solo traveler</p>
+            <h3 className="text-2xl font-serif font-bold text-slate-800">{t('single_pass')}</h3>
+            <p className="text-sm text-slate-500 mt-1">{t('for_single')}</p>
           </div>
           <div className="p-8 bg-slate-50/50 flex-grow">
             <div className="text-center mb-8">
-               <span className="text-4xl font-bold text-school-primary">৳ 1,000</span>
+               <span className="text-4xl font-bold text-school-primary">৳ ১,০০০</span>
             </div>
             <ul className="space-y-4 text-slate-600 text-sm mb-8">
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Star className="w-3 h-3 text-green-600" /></div> Entry for 1 Person</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Utensils className="w-3 h-3 text-green-600" /></div> Lunch & Snacks</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Gift className="w-3 h-3 text-green-600" /></div> Souvenir T-Shirt</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Ticket className="w-3 h-3 text-green-600" /></div> Raffle Draw Entry</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Star className="w-3 h-3 text-green-600" /></div> 1 {t('person_entry')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Utensils className="w-3 h-3 text-green-600" /></div> {t('lunch_snacks')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Gift className="w-3 h-3 text-green-600" /></div> {t('souvenir')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Ticket className="w-3 h-3 text-green-600" /></div> {t('raffle')}</li>
             </ul>
             <button 
               onClick={() => initiateSelection('single', 1000, 1)}
               className="w-full bg-white border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white font-bold py-3 rounded-xl transition-all duration-200"
             >
-              Select Single
+              {t('btn_select_single')}
             </button>
           </div>
         </div>
 
         {/* Couple Pass */}
         <div className="group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-school-accent relative transform md:-translate-y-4 md:hover:-translate-y-5 z-10 flex flex-col">
-          <div className="absolute top-4 right-0 bg-school-accent text-school-primary text-xs font-bold px-3 py-1 uppercase tracking-wider rounded-l shadow-md">Most Popular</div>
+          <div className="absolute top-4 right-0 bg-school-accent text-school-primary text-xs font-bold px-3 py-1 uppercase tracking-wider rounded-l shadow-md">POPULAR</div>
           <div className="p-8 text-center border-b border-slate-50 bg-gradient-to-b from-amber-50 to-white">
             <div className="inline-flex p-4 rounded-full bg-amber-100 text-amber-600 mb-4 group-hover:scale-110 transition-transform shadow-sm">
               <Users className="h-8 w-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800">Couple Pass</h3>
-            <p className="text-sm text-slate-500 mt-1">Bring your partner</p>
+            <h3 className="text-2xl font-serif font-bold text-slate-800">{t('couple_pass')}</h3>
+            <p className="text-sm text-slate-500 mt-1">{t('with_partner')}</p>
           </div>
           <div className="p-8 bg-white flex-grow">
             <div className="text-center mb-8">
-               <span className="text-5xl font-bold text-school-secondary">৳ 1,800</span>
-               <span className="block text-xs text-amber-600 mt-1 font-medium">Save ৳ 200</span>
+               <span className="text-5xl font-bold text-school-secondary">৳ ১,৮০০</span>
+               <span className="block text-xs text-amber-600 mt-1 font-medium">{t('save')} ৳ ২০০</span>
             </div>
             <ul className="space-y-4 text-slate-700 text-sm mb-8">
-              <li className="flex items-center font-medium"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Star className="w-3 h-3 text-amber-700" /></div> Entry for 2 People</li>
-              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Utensils className="w-3 h-3 text-amber-700" /></div> Lunch & Snacks (x2)</li>
-              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Gift className="w-3 h-3 text-amber-700" /></div> Souvenir Gift Set</li>
-              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Camera className="w-3 h-3 text-amber-700" /></div> Couple Photo Session</li>
+              <li className="flex items-center font-medium"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Star className="w-3 h-3 text-amber-700" /></div> 2 {t('person_entry')}</li>
+              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Utensils className="w-3 h-3 text-amber-700" /></div> {t('lunch_snacks')} (x2)</li>
+              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Gift className="w-3 h-3 text-amber-700" /></div> {t('gift_set')}</li>
+              <li className="flex items-center"><div className="p-1 bg-school-accent/30 rounded-full mr-3"><Camera className="w-3 h-3 text-amber-700" /></div> {t('photo_session')}</li>
             </ul>
             <button 
               onClick={() => initiateSelection('couple', 1800, 2)}
               className="w-full bg-school-secondary hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-900/20 transition-all duration-200"
             >
-              Select Couple Pass
+              {t('btn_select_couple')}
             </button>
           </div>
         </div>
@@ -166,25 +168,25 @@ export const TicketBooking: React.FC<TicketBookingProps> = ({ onSelect }) => {
             <div className="inline-flex p-4 rounded-full bg-blue-50 text-blue-600 mb-4 group-hover:scale-110 transition-transform">
               <Ticket className="h-8 w-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800">Family Pack</h3>
-            <p className="text-sm text-slate-500 mt-1">Complete celebration</p>
+            <h3 className="text-2xl font-serif font-bold text-slate-800">{t('family_pass')}</h3>
+            <p className="text-sm text-slate-500 mt-1">{t('full_celebration')}</p>
           </div>
           <div className="p-8 bg-slate-50/50 flex-grow">
             <div className="text-center mb-8">
-               <span className="text-4xl font-bold text-school-primary">৳ 3,000</span>
-               <span className="block text-xs text-green-600 mt-1 font-medium">Best Value</span>
+               <span className="text-4xl font-bold text-school-primary">৳ ৩,০০০</span>
+               <span className="block text-xs text-green-600 mt-1 font-medium">{t('best_value')}</span>
             </div>
             <ul className="space-y-4 text-slate-600 text-sm mb-8">
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Star className="w-3 h-3 text-green-600" /></div> Entry for 4 People</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Utensils className="w-3 h-3 text-green-600" /></div> Premium Lunch Table</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Gift className="w-3 h-3 text-green-600" /></div> Kids Zone Access</li>
-              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Camera className="w-3 h-3 text-green-600" /></div> Family Portrait</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Star className="w-3 h-3 text-green-600" /></div> 4 {t('person_entry')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Utensils className="w-3 h-3 text-green-600" /></div> {t('premium_lunch')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Gift className="w-3 h-3 text-green-600" /></div> {t('kids_zone')}</li>
+              <li className="flex items-center"><div className="p-1 bg-green-100 rounded-full mr-3"><Camera className="w-3 h-3 text-green-600" /></div> {t('family_portrait')}</li>
             </ul>
             <button 
               onClick={() => initiateSelection('family', 3000, 4)}
               className="w-full bg-white border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white font-bold py-3 rounded-xl transition-all duration-200"
             >
-              Select Family
+              {t('btn_select_family')}
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, Sparkles } from 'lucide-react';
 import { getChatResponse } from '../services/geminiService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Message {
   role: 'user' | 'model';
@@ -9,9 +10,10 @@ interface Message {
 }
 
 export const AiAssistant: React.FC = () => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: 'Hello! I am Habib, your Reunion Assistant. How can I help you today?' }
+    { role: 'model', text: t('ai_welcome') }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -20,6 +22,13 @@ export const AiAssistant: React.FC = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Re-sync initial message when language changes if it's the only message
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].role === 'model') {
+       setMessages([{ role: 'model', text: t('ai_welcome') }]);
+    }
+  }, [t]);
 
   useEffect(() => {
     scrollToBottom();
@@ -31,13 +40,11 @@ export const AiAssistant: React.FC = () => {
     const userMessage = input.trim();
     setInput('');
     
-    // Add user message
     const newHistory = [...messages, { role: 'user', text: userMessage } as Message];
     setMessages(newHistory);
     setIsTyping(true);
 
     try {
-      // Convert history format for API
       const apiHistory = messages.map(m => ({
         role: m.role,
         parts: [{ text: m.text }]
@@ -47,7 +54,7 @@ export const AiAssistant: React.FC = () => {
       
       setMessages(prev => [...prev, { role: 'model', text: response }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'model', text: "Sorry, I encountered an error. Please try again." }]);
+      setMessages(prev => [...prev, { role: 'model', text: t('ai_error') }]);
     } finally {
       setIsTyping(false);
     }
@@ -59,7 +66,12 @@ export const AiAssistant: React.FC = () => {
     }
   };
 
-  const suggestions = ["Ticket Prices?", "How to register?", "Event Schedule", "School History"];
+  const suggestions = [
+    t('ai_sugg_price'), 
+    t('ai_sugg_reg'), 
+    t('ai_sugg_schedule'), 
+    t('ai_sugg_history')
+  ];
 
   return (
     <div className="fixed bottom-6 right-6 z-50 no-print font-sans">
@@ -117,13 +129,13 @@ export const AiAssistant: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestions (only if few messages) */}
+          {/* Suggestions */}
           {messages.length < 3 && (
             <div className="px-4 pb-2 bg-slate-50 flex flex-wrap gap-2">
               {suggestions.map((s, i) => (
                 <button 
                   key={i}
-                  onClick={() => { setInput(s); setTimeout(handleSend, 100); }} // Small delay to update state then send
+                  onClick={() => { setInput(s); setTimeout(handleSend, 100); }}
                   className="text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-full hover:bg-blue-50 transition-colors"
                 >
                   {s}
@@ -140,7 +152,7 @@ export const AiAssistant: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me anything..." 
+                placeholder={t('ask_something')} 
                 className="flex-1 bg-slate-100 border-0 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-school-primary/20 focus:outline-none text-slate-800"
               />
               <button 
@@ -170,10 +182,8 @@ export const AiAssistant: React.FC = () => {
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
           <MessageCircle className="w-7 h-7" />
           
-          {/* Label */}
           <div className="absolute right-16 bg-white text-slate-800 px-3 py-1.5 rounded-lg shadow-md text-sm font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-slate-100">
-             Chat with Habib
-             {/* Tiny Triangle */}
+             {t('chat_with_habib')}
              <div className="absolute top-1/2 -right-1 w-2 h-2 bg-white transform -translate-y-1/2 rotate-45 border-r border-t border-slate-100"></div>
           </div>
         </button>
